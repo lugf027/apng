@@ -45,8 +45,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import apng.composeapp.generated.resources.Res
 import io.github.lugf027.apng.compose.ApngImage
-import io.github.lugf027.apng.compose.ApngLoadState
-import io.github.lugf027.apng.compose.rememberApngState
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 /**

@@ -1,25 +1,29 @@
 package io.github.lugf027.apng.compose
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import io.github.lugf027.apng.core.ApngImage
-import io.github.lugf027.apng.core.ApngLoader
 
 /**
  * APNG 图像显示组件
- * 支持动画播放和自动播放控制
+ * 
+ * 使用 Compose Painter 进行渲染，参考 compottie 的设计理念
+ * 
+ * @param data APNG 图像数据
+ * @param contentDescription 内容描述（用于无障碍）
+ * @param modifier 修饰符
+ * @param contentScale 内容缩放方式
+ * @param autoPlay 是否自动播放动画
+ * @param speed 播放速度倍率
+ * @param iterations 循环次数，0 表示无限循环
+ * @param onError 错误回调
  */
 @Composable
 fun ApngImage(
@@ -28,34 +32,14 @@ fun ApngImage(
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Fit,
     autoPlay: Boolean = true,
+    speed: Float = 1f,
+    iterations: Int = 0,
     onError: ((Throwable) -> Unit)? = null
 ) {
-    var apngImage: ApngImage? by remember { mutableStateOf(null) }
-    var isLoading by remember { mutableStateOf(true) }
-    var error: Throwable? by remember { mutableStateOf(null) }
-
-    LaunchedEffect(data) {
-        try {
-            val loader = ApngLoader()
-            apngImage = loader.loadFromBytes(data)
-            isLoading = false
-        } catch (e: Throwable) {
-            error = e
-            isLoading = false
-            onError?.invoke(e)
-        }
-    }
-
-    when {
-        error != null -> {
-            Box(
-                modifier = modifier,
-                contentAlignment = Alignment.Center
-            ) {
-                Text("Error: ${error?.message}")
-            }
-        }
-        isLoading -> {
+    val compositionResult = rememberApngComposition(data)
+    
+    when (compositionResult) {
+        is ApngCompositionResult.Loading -> {
             Box(
                 modifier = modifier,
                 contentAlignment = Alignment.Center
@@ -65,30 +49,95 @@ fun ApngImage(
                 )
             }
         }
-        else -> {
-            apngImage?.let { image ->
-                ApngImageRenderer(
-                    apngImage = image,
-                    rawData = data,
-                    contentDescription = contentDescription,
-                    modifier = modifier,
-                    contentScale = contentScale,
-                    autoPlay = autoPlay
-                )
+        is ApngCompositionResult.Error -> {
+            onError?.invoke(compositionResult.throwable)
+            Box(
+                modifier = modifier,
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Error: ${compositionResult.throwable.message}")
             }
+        }
+        is ApngCompositionResult.Success -> {
+            val painter = rememberApngPainter(
+                composition = compositionResult.composition,
+                autoPlay = autoPlay,
+                speed = speed,
+                iterations = iterations
+            )
+            
+            Image(
+                painter = painter,
+                contentDescription = contentDescription,
+                modifier = modifier,
+                contentScale = contentScale
+            )
         }
     }
 }
 
 /**
- * 平台特定的 APNG 渲染器
+ * APNG 图像显示组件 - 使用预加载的合成数据
+ * 
+ * @param composition APNG 合成数据
+ * @param contentDescription 内容描述（用于无障碍）
+ * @param modifier 修饰符
+ * @param contentScale 内容缩放方式
+ * @param autoPlay 是否自动播放动画
+ * @param speed 播放速度倍率
+ * @param iterations 循环次数，0 表示无限循环
  */
 @Composable
-expect fun ApngImageRenderer(
-    apngImage: ApngImage,
-    rawData: ByteArray,
+fun ApngImage(
+    composition: ApngComposition,
     contentDescription: String?,
-    modifier: Modifier,
-    contentScale: ContentScale,
-    autoPlay: Boolean
-)
+    modifier: Modifier = Modifier,
+    contentScale: ContentScale = ContentScale.Fit,
+    autoPlay: Boolean = true,
+    speed: Float = 1f,
+    iterations: Int = 0
+) {
+    val painter = rememberApngPainter(
+        composition = composition,
+        autoPlay = autoPlay,
+        speed = speed,
+        iterations = iterations
+    )
+    
+    Image(
+        painter = painter,
+        contentDescription = contentDescription,
+        modifier = modifier,
+        contentScale = contentScale
+    )
+}
+
+/**
+ * APNG 图像显示组件 - 使用自定义进度控制
+ * 
+ * @param composition APNG 合成数据
+ * @param progress 当前播放进度的 lambda（0.0-1.0）
+ * @param contentDescription 内容描述（用于无障碍）
+ * @param modifier 修饰符
+ * @param contentScale 内容缩放方式
+ */
+@Composable
+fun ApngImage(
+    composition: ApngComposition?,
+    progress: () -> Float,
+    contentDescription: String?,
+    modifier: Modifier = Modifier,
+    contentScale: ContentScale = ContentScale.Fit
+) {
+    val painter = rememberApngPainter(
+        composition = composition,
+        progress = progress
+    )
+    
+    Image(
+        painter = painter,
+        contentDescription = contentDescription,
+        modifier = modifier,
+        contentScale = contentScale
+    )
+}
