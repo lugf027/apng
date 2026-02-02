@@ -60,18 +60,18 @@ data class ApngResource(
  * APNG Demo 资源列表
  */
 val apngResources = listOf(
-    ApngResource("3D Cube", "APNG-cube.apng", "旋转的 3D 立方体动画"),
-    ApngResource("Ball", "ball.apng", "弹跳球动画"),
-    ApngResource("Elephant", "elephant_apng.apng", "大象动画"),
-    ApngResource("Maneki Neko", "maneki-neko.apng", "招财猫动画"),
-    ApngResource("Spin Fox", "spinfox.apng", "旋转狐狸动画"),
-    ApngResource("Pyani", "pyani.apng", "Pyani 动画"),
-    ApngResource("Over Background", "over_background.apng", "背景叠加测试"),
-    ApngResource("Over None", "over_none.apng", "无叠加测试"),
-    ApngResource("Over Previous", "over_previous.apng", "前帧叠加测试"),
-    ApngResource("4D", "APNG-4D.apng", "4D 动画效果"),
-    ApngResource("Minimal", "minimal.apng", "最小 APNG 示例"),
-    ApngResource("Alpha", "tRNS_alpha.apng", "透明通道测试"),
+    ApngResource("3D Cube", "APNG-cube.apng", "Rotating 3D cube anim"),
+    ApngResource("Ball", "ball.apng", "Bouncing ball animation"),
+    ApngResource("Elephant", "elephant_apng.apng", "Elephant animation"),
+    ApngResource("Maneki Neko", "maneki-neko.apng", "Lucky cat animation"),
+    ApngResource("Spin Fox", "spinfox.apng", "Spinning fox animation"),
+    ApngResource("Pyani", "pyani.apng", "Pyani animation"),
+    ApngResource("Over Background", "over_background.apng", "Background overlay test"),
+    ApngResource("Over None", "over_none.apng", "No overlay test"),
+    ApngResource("Over Previous", "over_previous.apng", "Previous frame overlay test"),
+    ApngResource("4D", "APNG-4D.apng", "4D animation effect"),
+    ApngResource("Minimal", "minimal.apng", "Minimal APNG example"),
+    ApngResource("Alpha", "tRNS_alpha.apng", "Alpha channel test"),
 )
 
 @OptIn(ExperimentalResourceApi::class)
@@ -97,7 +97,7 @@ fun ApngDemoScreen() {
                 )
 
                 Text(
-                    "Kotlin Multiplatform APNG 解析和渲染库",
+                    "Kotlin Multiplatform APNG Parse And Render",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 16.dp)
