@@ -5,6 +5,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.mavenPublish)
 }
 
 kotlin {
@@ -112,3 +113,38 @@ android {
 
 @Suppress("UNUSED_VARIABLE")
 val kotlinMppExtension: org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension? = null
+
+mavenPublishing {
+    coordinates(
+        groupId = "io.github.lugf027",
+        artifactId = "apng-network-core",
+        version = "0.0.1"
+    )
+
+    pom {
+        name.set("Kotlin Multiplatform APNG Network Core")
+        description.set("Network loading infrastructure and abstractions for APNG")
+        url.set("https://github.com/lugf027/apng")
+
+        licenses {
+            license {
+                name.set("MIT")
+                url.set("https://opensource.org/licenses/MIT")
+            }
+        }
+
+        developers {
+            developer {
+                id.set("lugf027")
+                name.set("lugf027")
+                url.set("https://github.com/lugf027")
+            }
+        }
+
+        scm {
+            url.set("https://github.com/lugf027/apng")
+            connection.set("scm:git:https://github.com/lugf027/apng.git")
+            developerConnection.set("scm:git:https://github.com/lugf027/apng.git")
+        }
+    }
+}
