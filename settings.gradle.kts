@@ -33,5 +33,8 @@ plugins {
 }
 
 include(":apng-core")
+include(":apng-network-core")
+include(":apng-network")
+include(":apng-resources")
 include(":apng-compose")
 include(":composeApp")

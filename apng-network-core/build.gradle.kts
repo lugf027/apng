@@ -6,7 +6,6 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.composeMultiplatform)
-    alias(libs.plugins.composeCompiler)
 }
 
 kotlin {
@@ -48,7 +47,7 @@ kotlin {
         iosSimulatorArm64()
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
-            baseName = "ApngCompose"
+            baseName = "ApngNetworkCore"
             isStatic = true
         }
     }
@@ -67,11 +66,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(project(":apng-core"))
-            implementation(project(":apng-network-core"))
-            implementation(libs.compose.runtime)
-            implementation(libs.compose.foundation)
-            implementation(libs.compose.ui)
-            implementation(libs.compose.material3)
+            implementation(libs.okio)
             implementation(libs.kotlinx.coroutines)
         }
 
@@ -88,10 +83,7 @@ kotlin {
         }
 
         val desktopMain by getting {
-            dependencies {
-                implementation(libs.skiko)
-                implementation(compose.desktop.currentOs)
-            }
+            // Desktop uses Okio for file operations
         }
 
         val iosMain by getting {
@@ -105,7 +97,7 @@ kotlin {
 }
 
 android {
-    namespace = "io.github.lugf027.apng.compose"
+    namespace = "io.github.lugf027.apng.network"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
@@ -118,6 +110,5 @@ android {
     }
 }
 
-// For Web/Wasm experimental support
 @Suppress("UNUSED_VARIABLE")
 val kotlinMppExtension: org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension? = null

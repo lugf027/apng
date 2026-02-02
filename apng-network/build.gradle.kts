@@ -48,7 +48,7 @@ kotlin {
         iosSimulatorArm64()
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
-            baseName = "ApngCompose"
+            baseName = "ApngNetwork"
             isStatic = true
         }
     }
@@ -66,12 +66,12 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(project(":apng-core"))
             implementation(project(":apng-network-core"))
-            implementation(libs.compose.runtime)
-            implementation(libs.compose.foundation)
+            implementation(project(":apng-core"))
+            implementation(libs.ktor.client.core)
             implementation(libs.compose.ui)
-            implementation(libs.compose.material3)
+            implementation(libs.compose.foundation)
+            implementation(libs.compose.runtime)
             implementation(libs.kotlinx.coroutines)
         }
 
@@ -81,6 +81,7 @@ kotlin {
 
         androidMain.dependencies {
             implementation(libs.androidx.core.ktx)
+            implementation(libs.ktor.client.okhttp)
         }
 
         val skikoMain by getting {
@@ -89,23 +90,28 @@ kotlin {
 
         val desktopMain by getting {
             dependencies {
-                implementation(libs.skiko)
-                implementation(compose.desktop.currentOs)
+                implementation(libs.ktor.client.okhttp)
             }
         }
 
         val iosMain by getting {
             dependsOn(skikoMain)
+            dependencies {
+                implementation(libs.ktor.client.darwin)
+            }
         }
 
         val webMain by getting {
             dependsOn(commonMain.get())
+            dependencies {
+                implementation(libs.ktor.client.js)
+            }
         }
     }
 }
 
 android {
-    namespace = "io.github.lugf027.apng.compose"
+    namespace = "io.github.lugf027.apng.network"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
@@ -118,6 +124,5 @@ android {
     }
 }
 
-// For Web/Wasm experimental support
 @Suppress("UNUSED_VARIABLE")
 val kotlinMppExtension: org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension? = null
