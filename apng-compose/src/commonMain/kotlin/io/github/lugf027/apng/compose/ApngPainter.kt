@@ -3,7 +3,6 @@ package io.github.lugf027.apng.compose
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -104,8 +103,19 @@ fun rememberApngPainter(
     composition: ApngComposition?,
     progress: () -> Float = { 0f }
 ): Painter {
-    return remember(composition) {
-        ApngPainter(composition, progress)
+    var frameIndex by remember { mutableIntStateOf(0) }
+    
+    // 根据 progress 计算帧索引
+    LaunchedEffect(composition, progress) {
+        if (composition == null || composition.frames.isEmpty()) return@LaunchedEffect
+        
+        val p = progress()
+        frameIndex = (p * composition.frames.size).toInt().coerceIn(0, composition.frames.size - 1)
+    }
+    
+    // frameIndex 变化时会触发重组，返回新的 Painter
+    return remember(composition, frameIndex) {
+        ApngPainter(composition, frameIndex)
     }
 }
 
@@ -124,8 +134,8 @@ fun rememberApngPainter(
     speed: Float = 1f,
     iterations: Int = 0
 ): Painter {
-    var progress by remember { mutableFloatStateOf(0f) }
-    var currentFrame by remember { mutableIntStateOf(0) }
+    // 使用 by 委托来驱动帧变化和重组
+    var frameIndex by remember { mutableIntStateOf(0) }
     
     // 自动播放动画
     LaunchedEffect(composition, autoPlay, speed, iterations) {
@@ -137,13 +147,13 @@ fun rememberApngPainter(
         val maxLoops = if (iterations == 0) Int.MAX_VALUE else iterations
         
         while (isActive && loopCount < maxLoops) {
-            for (frameIndex in composition.frames.indices) {
+            for (index in composition.frames.indices) {
                 if (!isActive) break
                 
-                currentFrame = frameIndex
-                progress = frameIndex.toFloat() / composition.frames.size.coerceAtLeast(1)
+                // 更新帧索引 - 这会触发 Compose 重组
+                frameIndex = index
                 
-                val frame = composition.frames[frameIndex]
+                val frame = composition.frames[index]
                 val actualDelay = (frame.delayMs / speed).toLong().coerceAtLeast(16L)
                 delay(actualDelay)
             }
@@ -151,11 +161,9 @@ fun rememberApngPainter(
         }
     }
     
-    return remember(composition) {
-        ApngPainter(composition) { progress }
-    }.also { painter ->
-        // 更新 Painter 的状态触发重绘
-        painter.updateFrame(currentFrame)
+    // frameIndex 变化时返回新的 Painter 实例来触发重绘
+    return remember(composition, frameIndex) {
+        ApngPainter(composition, frameIndex)
     }
 }
 
@@ -167,55 +175,26 @@ fun rememberApngPainter(
  */
 internal class ApngPainter(
     private val composition: ApngComposition?,
-    private val progress: () -> Float
+    private val currentFrameIndex: Int
 ) : Painter() {
-    
-    private var currentFrameIndex = 0
     
     override val intrinsicSize: Size
         get() = composition?.let { 
             Size(it.width.toFloat(), it.height.toFloat()) 
         } ?: Size.Unspecified
     
-    /**
-     * 更新当前帧索引
-     */
-    fun updateFrame(frameIndex: Int) {
-        currentFrameIndex = frameIndex
-    }
-    
     override fun DrawScope.onDraw() {
         val comp = composition ?: return
         if (comp.frames.isEmpty()) return
         
-        // 根据进度计算当前帧
-        val frameIndex = if (comp.frames.size == 1) {
-            0
-        } else {
-            currentFrameIndex.coerceIn(0, comp.frames.size - 1)
-        }
-        
+        val frameIndex = currentFrameIndex.coerceIn(0, comp.frames.size - 1)
         val frame = comp.frames[frameIndex]
         
-        // 计算缩放以适应画布
-        val scaleX = size.width / comp.width
-        val scaleY = size.height / comp.height
-        val scale = minOf(scaleX, scaleY)
-        
-        val scaledWidth = comp.width * scale
-        val scaledHeight = comp.height * scale
-        
-        // 居中偏移
-        val offsetX = (size.width - scaledWidth) / 2f
-        val offsetY = (size.height - scaledHeight) / 2f
-        
-        // 绘制当前帧
+        // 简化绘制 - 直接绘制到整个画布区域
         drawImage(
             image = frame.bitmap,
-            srcOffset = IntOffset.Zero,
-            srcSize = IntSize(frame.bitmap.width, frame.bitmap.height),
-            dstOffset = IntOffset(offsetX.toInt(), offsetY.toInt()),
-            dstSize = IntSize(scaledWidth.toInt(), scaledHeight.toInt())
+            dstOffset = IntOffset.Zero,
+            dstSize = IntSize(size.width.toInt(), size.height.toInt())
         )
     }
 }

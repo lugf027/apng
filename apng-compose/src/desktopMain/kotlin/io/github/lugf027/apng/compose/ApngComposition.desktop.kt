@@ -1,12 +1,8 @@
 package io.github.lugf027.apng.compose
 
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
-import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.Canvas
-import org.jetbrains.skia.ColorAlphaType
 import org.jetbrains.skia.Image
-import org.jetbrains.skia.ImageInfo
 import org.jetbrains.skia.Paint
 import org.jetbrains.skia.Rect
 
@@ -213,6 +209,9 @@ private fun parseApngStructure(data: ByteArray): ApngParseResult {
 
 /**
  * 构建所有帧的 ImageBitmap
+ * 
+ * 注意：这里使用简化的方法，为每一帧直接生成完整的 PNG 然后解码
+ * 这种方法虽然不支持复杂的 dispose_op 和 blend_op，但更简单可靠
  */
 private fun buildFrames(
     ihdrData: ByteArray,
@@ -223,13 +222,12 @@ private fun buildFrames(
 ): List<ApngFrame> {
     val frames = mutableListOf<ApngFrame>()
     
-    // 创建画布用于合成帧
-    val canvasBitmap = Bitmap()
-    canvasBitmap.allocPixels(ImageInfo.makeN32(globalWidth, globalHeight, ColorAlphaType.PREMUL))
-    val canvas = Canvas(canvasBitmap)
+    // 创建用于合成的 Surface
+    val surface = org.jetbrains.skia.Surface.makeRasterN32Premul(globalWidth, globalHeight)
+    val canvas = surface.canvas
     canvas.clear(0x00000000) // 透明背景
     
-    var previousBitmap: Bitmap? = null
+    var previousSnapshot: Image? = null
     
     for (frameInfo in frameInfoList) {
         try {
@@ -237,16 +235,17 @@ private fun buildFrames(
             val framePng = buildFramePng(ihdrData, commonChunks, frameInfo)
             val frameImage = Image.makeFromEncoded(framePng)
             
-            // 根据 dispose_op 处理
+            // 根据 dispose_op 保存快照
             when (frameInfo.disposeOp) {
                 1, 2 -> { // APNG_DISPOSE_OP_BACKGROUND / PREVIOUS
-                    previousBitmap = canvasBitmap.copy()
+                    previousSnapshot?.close()
+                    previousSnapshot = surface.makeImageSnapshot()
                 }
             }
             
             // 根据 blend_op 绘制
             if (frameInfo.blendOp == 0) {
-                // APNG_BLEND_OP_SOURCE - 替换
+                // APNG_BLEND_OP_SOURCE - 先清除目标区域
                 canvas.save()
                 canvas.clipRect(Rect.makeXYWH(
                     frameInfo.offsetX.toFloat(),
@@ -271,12 +270,9 @@ private fun buildFrames(
                 Paint()
             )
             
-            // 创建当前帧的完整图像
-            val resultBitmap = canvasBitmap.copy()
-            val resultImage = Image.makeFromBitmap(resultBitmap)
-            val composeBitmap = resultImage.toComposeImageBitmap()
-            resultImage.close()
-            resultBitmap.close()
+            // 创建当前帧的快照
+            val snapshot = surface.makeImageSnapshot()
+            val composeBitmap = snapshot.toComposeImageBitmap()
             
             frames.add(ApngFrame(
                 bitmap = composeBitmap,
@@ -290,6 +286,7 @@ private fun buildFrames(
             ))
             
             frameImage.close()
+            snapshot.close()
             
             // 处理 dispose_op
             when (frameInfo.disposeOp) {
@@ -303,27 +300,26 @@ private fun buildFrames(
                     ))
                     canvas.clear(0x00000000)
                     canvas.restore()
-                    previousBitmap?.close()
-                    previousBitmap = null
+                    previousSnapshot?.close()
+                    previousSnapshot = null
                 }
                 2 -> { // APNG_DISPOSE_OP_PREVIOUS
-                    previousBitmap?.let { prev ->
+                    previousSnapshot?.let { prev ->
                         canvas.clear(0x00000000)
-                        val prevImage = Image.makeFromBitmap(prev)
-                        canvas.drawImage(prevImage, 0f, 0f)
-                        prevImage.close()
+                        canvas.drawImage(prev, 0f, 0f)
                         prev.close()
                     }
-                    previousBitmap = null
+                    previousSnapshot = null
                 }
             }
         } catch (e: Exception) {
+            // Log error for debugging
             e.printStackTrace()
         }
     }
     
-    canvasBitmap.close()
-    previousBitmap?.close()
+    surface.close()
+    previousSnapshot?.close()
     
     return frames
 }
@@ -364,16 +360,6 @@ private fun buildFramePng(
     output.addAll(createChunk("IEND", ByteArray(0)).toList())
     
     return output.toByteArray()
-}
-
-private fun Bitmap.copy(): Bitmap {
-    val copy = Bitmap()
-    copy.allocPixels(this.imageInfo)
-    val pixels = this.readPixels(this.imageInfo, 0, 0)
-    if (pixels != null) {
-        copy.installPixels(pixels)
-    }
-    return copy
 }
 
 private fun isPngSignature(data: ByteArray): Boolean {

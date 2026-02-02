@@ -170,7 +170,7 @@ private fun parseApngStructure(data: ByteArray): ApngParseResult {
                             disposeOp = 0,
                             blendOp = 0
                         )
-                        currentFrameInfo!!.idatData.add(chunkData)
+                        currentFrameInfo.idatData.add(chunkData)
                     }
             }
             "fdAT" -> {
