@@ -1,10 +1,16 @@
 package io.github.lugf027.apng
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -12,191 +18,211 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import apng.composeapp.generated.resources.Res
+import io.github.lugf027.apng.compose.ApngImage
 import io.github.lugf027.apng.compose.ApngLoadState
 import io.github.lugf027.apng.compose.rememberApngState
+import org.jetbrains.compose.resources.ExperimentalResourceApi
 
+/**
+ * APNG 资源项数据类
+ */
+data class ApngResource(
+    val name: String,
+    val fileName: String,
+    val description: String
+)
+
+/**
+ * APNG Demo 资源列表
+ */
+val apngResources = listOf(
+    ApngResource("3D Cube", "APNG-cube.apng", "旋转的 3D 立方体动画"),
+    ApngResource("Ball", "ball.apng", "弹跳球动画"),
+    ApngResource("Elephant", "elephant_apng.apng", "大象动画"),
+    ApngResource("Maneki Neko", "maneki-neko.apng", "招财猫动画"),
+    ApngResource("Spin Fox", "spinfox.apng", "旋转狐狸动画"),
+    ApngResource("Pyani", "pyani.apng", "Pyani 动画"),
+    ApngResource("Over Background", "over_background.apng", "背景叠加测试"),
+    ApngResource("Over None", "over_none.apng", "无叠加测试"),
+    ApngResource("Over Previous", "over_previous.apng", "前帧叠加测试"),
+    ApngResource("4D", "APNG-4D.apng", "4D 动画效果"),
+    ApngResource("Minimal", "minimal.apng", "最小 APNG 示例"),
+    ApngResource("Alpha", "tRNS_alpha.apng", "透明通道测试"),
+)
+
+@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun ApngDemoScreen() {
     MaterialTheme {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .safeContentPadding()
+                    .padding(16.dp)
+            ) {
+                // Header
+                Text(
+                    "APNG Demo",
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+
+                Text(
+                    "Kotlin Multiplatform APNG 解析和渲染库",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                // APNG Grid
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = 150.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(apngResources) { resource ->
+                        ApngCard(resource)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalResourceApi::class)
+@Composable
+private fun ApngCard(resource: ApngResource) {
+    var apngData by remember { mutableStateOf<ByteArray?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
+    var loadError by remember { mutableStateOf<String?>(null) }
+
+    // Load APNG data from resources
+    LaunchedEffect(resource.fileName) {
+        isLoading = true
+        loadError = null
+        try {
+            val bytes = Res.readBytes("files/${resource.fileName}")
+            apngData = bytes
+            isLoading = false
+        } catch (e: Exception) {
+            loadError = e.message ?: "加载失败"
+            isLoading = false
+        }
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(0.85f),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .safeContentPadding()
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                "APNG Demo",
-                style = MaterialTheme.typography.headlineLarge,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-
-            // Demo 1: Placeholder APNG
-            DemoSection(
-                title = "APNG 动画库 v1.0",
-                description = "Kotlin Multiplatform APNG 解析和渲染库"
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Demo 2: Features
-            Text(
-                "支持特性",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-
-            FeatureItem("✓ 多平台支持 (Android, iOS, Desktop, Web)")
-            FeatureItem("✓ APNG 格式解析")
-            FeatureItem("✓ 动画播放控制")
-            FeatureItem("✓ 帧缓存管理")
-            FeatureItem("✓ 性能优化")
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Demo 3: Platforms
-            Text(
-                "支持平台",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-
-            PlatformGrid()
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Demo 4: Status
-            Text(
-                "项目状态",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-
-            StatusItem("apng-core", "PNG/APNG 解析库", true)
-            StatusItem("apng-compose", "Compose 组件库", true)
-            StatusItem("演示应用", "集成示例", true)
-        }
-    }
-}
-
-@Composable
-private fun DemoSection(title: String, description: String) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                color = MaterialTheme.colorScheme.primaryContainer,
-                shape = MaterialTheme.shapes.medium
-            )
-            .padding(16.dp)
-    ) {
-        Column {
-            Text(
-                title,
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-            Text(
-                description,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.padding(top = 4.dp)
-            )
-        }
-    }
-}
-
-@Composable
-private fun FeatureItem(text: String) {
-    Text(
-        text,
-        style = MaterialTheme.typography.bodyMedium,
-        modifier = Modifier.padding(vertical = 4.dp)
-    )
-}
-
-@Composable
-private fun PlatformGrid() {
-    val platforms = listOf("Android", "iOS", "Desktop", "Web")
-    Column(modifier = Modifier.fillMaxWidth()) {
-        for (i in platforms.indices step 2) {
-            Row(modifier = Modifier.fillMaxWidth()) {
-                PlatformCard(
-                    platforms[i],
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(end = 8.dp)
-                )
-                if (i + 1 < platforms.size) {
-                    PlatformCard(
-                        platforms[i + 1],
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(start = 8.dp)
+            // APNG Display Area
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                     )
-                } else {
-                    Spacer(modifier = Modifier.weight(1f))
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                        shape = RoundedCornerShape(8.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                when {
+                    isLoading -> {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(32.dp),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                    loadError != null -> {
+                        Text(
+                            text = "⚠️ $loadError",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(8.dp)
+                        )
+                    }
+                    apngData != null -> {
+                        ApngImage(
+                            data = apngData!!,
+                            contentDescription = resource.name,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(8.dp),
+                            autoPlay = true
+                        )
+                    }
                 }
             }
+
             Spacer(modifier = Modifier.height(8.dp))
-        }
-    }
-}
 
-@Composable
-private fun PlatformCard(name: String, modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .background(
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                shape = MaterialTheme.shapes.small
+            // Title
+            Text(
+                text = resource.name,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
-            .padding(12.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            name,
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSecondaryContainer
-        )
-    }
-}
 
-@Composable
-private fun StatusItem(label: String, description: String, isReady: Boolean) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(8.dp)
-                .background(
-                    color = if (isReady) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-                    shape = MaterialTheme.shapes.small
-                )
-        )
-        Spacer(modifier = Modifier.width(12.dp))
-        Column {
-            Text(label, style = MaterialTheme.typography.labelLarge)
-            Text(description, style = MaterialTheme.typography.bodySmall)
+            // Description
+            Text(
+                text = resource.description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
