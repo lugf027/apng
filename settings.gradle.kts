@@ -32,4 +32,6 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
+include(":apng-core")
+include(":apng-compose")
 include(":composeApp")
