@@ -1,19 +1,41 @@
 package io.github.lugf027.apng.resources
 
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import io.github.lugf027.apng.compose.ApngImage
-import io.github.lugf027.apng.core.ApngImage as ApngImageData
-import io.github.lugf027.apng.core.ApngLoader
-import io.github.lugf027.apng.network.ApngCompositionResult
 import io.github.lugf027.apng.network.ApngSource
 import io.github.lugf027.apng.network.getDefaultResourceLoader
 import kotlinx.coroutines.launch
 
 /**
- * Load and remember APNG from a local file path or Compose Resources.
+ * Result of loading APNG bytes from resources.
+ */
+sealed class ResourceLoadResult {
+    /** Loading in progress */
+    data class Loading(val progress: Float = 0f) : ResourceLoadResult()
+    
+    /** Successfully loaded */
+    data class Success(val bytes: ByteArray) : ResourceLoadResult() {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Success) return false
+            return bytes.contentEquals(other.bytes)
+        }
+        override fun hashCode(): Int = bytes.contentHashCode()
+    }
+    
+    /** Error during loading */
+    data class Error(val exception: Exception) : ResourceLoadResult()
+}
+
+/**
+ * Load and remember APNG bytes from a resource path.
  *
  * Example:
  * ```kotlin
@@ -24,9 +46,9 @@ import kotlinx.coroutines.launch
  *     )
  *     
  *     when (result) {
- *         is ApngCompositionResult.Loading -> CircularProgressIndicator()
- *         is ApngCompositionResult.Success -> ApngImage(result.composition)
- *         is ApngCompositionResult.Error -> Text("Failed to load: ${result.exception.message}")
+ *         is ResourceLoadResult.Loading -> CircularProgressIndicator()
+ *         is ResourceLoadResult.Success -> ApngImage(data = result.bytes, contentDescription = null)
+ *         is ResourceLoadResult.Error -> Text("Failed to load: ${result.exception.message}")
  *     }
  * }
  * ```
@@ -34,20 +56,19 @@ import kotlinx.coroutines.launch
 @Composable
 fun rememberApngCompositionFromResource(
     resourcePath: String
-): ApngCompositionResult {
-    val result = remember { mutableStateOf<ApngCompositionResult>(ApngCompositionResult.Loading()) }
+): ResourceLoadResult {
+    val result = remember { mutableStateOf<ResourceLoadResult>(ResourceLoadResult.Loading()) }
 
     LaunchedEffect(resourcePath) {
-        result.value = ApngCompositionResult.Loading()
+        result.value = ResourceLoadResult.Loading()
         
         launch {
             try {
                 val resourceLoader = getDefaultResourceLoader()
                 val bytes = resourceLoader.load(ApngSource.Resource(resourcePath))
-                val apngImage = ApngLoader().loadFromBytes(bytes)
-                result.value = ApngCompositionResult.Success(apngImage)
+                result.value = ResourceLoadResult.Success(bytes)
             } catch (e: Exception) {
-                result.value = ApngCompositionResult.Error(e)
+                result.value = ResourceLoadResult.Error(e)
             }
         }
     }
@@ -56,7 +77,7 @@ fun rememberApngCompositionFromResource(
 }
 
 /**
- * Load and remember APNG from a local file path.
+ * Load and remember APNG bytes from a local file path.
  *
  * Example:
  * ```kotlin
@@ -67,9 +88,9 @@ fun rememberApngCompositionFromResource(
  *     )
  *     
  *     when (result) {
- *         is ApngCompositionResult.Loading -> CircularProgressIndicator()
- *         is ApngCompositionResult.Success -> ApngImage(result.composition)
- *         is ApngCompositionResult.Error -> Text("Failed to load: ${result.exception.message}")
+ *         is ResourceLoadResult.Loading -> CircularProgressIndicator()
+ *         is ResourceLoadResult.Success -> ApngImage(data = result.bytes, contentDescription = null)
+ *         is ResourceLoadResult.Error -> Text("Failed to load: ${result.exception.message}")
  *     }
  * }
  * ```
@@ -77,20 +98,19 @@ fun rememberApngCompositionFromResource(
 @Composable
 fun rememberApngCompositionFromFile(
     filePath: String
-): ApngCompositionResult {
-    val result = remember { mutableStateOf<ApngCompositionResult>(ApngCompositionResult.Loading()) }
+): ResourceLoadResult {
+    val result = remember { mutableStateOf<ResourceLoadResult>(ResourceLoadResult.Loading()) }
 
     LaunchedEffect(filePath) {
-        result.value = ApngCompositionResult.Loading()
+        result.value = ResourceLoadResult.Loading()
         
         launch {
             try {
                 val resourceLoader = getDefaultResourceLoader()
                 val bytes = resourceLoader.load(ApngSource.File(filePath))
-                val apngImage = ApngLoader().loadFromBytes(bytes)
-                result.value = ApngCompositionResult.Success(apngImage)
+                result.value = ResourceLoadResult.Success(bytes)
             } catch (e: Exception) {
-                result.value = ApngCompositionResult.Error(e)
+                result.value = ResourceLoadResult.Error(e)
             }
         }
     }
@@ -116,29 +136,29 @@ fun rememberApngCompositionFromFile(
 fun ApngImageFromResource(
     resourcePath: String,
     contentDescription: String? = null,
-    modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier,
+    modifier: Modifier = Modifier,
     onLoading: @Composable () -> Unit = {
-        androidx.compose.material3.CircularProgressIndicator()
+        CircularProgressIndicator()
     },
     onError: @Composable (Exception) -> Unit = { exception ->
-        androidx.compose.material3.Text(
+        Text(
             "Failed to load: ${exception.message}",
-            color = androidx.compose.material3.MaterialTheme.colorScheme.error
+            color = MaterialTheme.colorScheme.error
         )
     }
 ) {
     val result = rememberApngCompositionFromResource(resourcePath)
     
     when (result) {
-        is ApngCompositionResult.Loading -> onLoading()
-        is ApngCompositionResult.Success -> {
+        is ResourceLoadResult.Loading -> onLoading()
+        is ResourceLoadResult.Success -> {
             ApngImage(
-                data = result.composition,
+                data = result.bytes,
                 contentDescription = contentDescription,
                 modifier = modifier
             )
         }
-        is ApngCompositionResult.Error -> onError(result.exception)
+        is ResourceLoadResult.Error -> onError(result.exception)
     }
 }
 
@@ -149,28 +169,28 @@ fun ApngImageFromResource(
 fun ApngImageFromFile(
     filePath: String,
     contentDescription: String? = null,
-    modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier,
+    modifier: Modifier = Modifier,
     onLoading: @Composable () -> Unit = {
-        androidx.compose.material3.CircularProgressIndicator()
+        CircularProgressIndicator()
     },
     onError: @Composable (Exception) -> Unit = { exception ->
-        androidx.compose.material3.Text(
+        Text(
             "Failed to load: ${exception.message}",
-            color = androidx.compose.material3.MaterialTheme.colorScheme.error
+            color = MaterialTheme.colorScheme.error
         )
     }
 ) {
     val result = rememberApngCompositionFromFile(filePath)
     
     when (result) {
-        is ApngCompositionResult.Loading -> onLoading()
-        is ApngCompositionResult.Success -> {
+        is ResourceLoadResult.Loading -> onLoading()
+        is ResourceLoadResult.Success -> {
             ApngImage(
-                data = result.composition,
+                data = result.bytes,
                 contentDescription = contentDescription,
                 modifier = modifier
             )
         }
-        is ApngCompositionResult.Error -> onError(result.exception)
+        is ResourceLoadResult.Error -> onError(result.exception)
     }
 }

@@ -55,22 +55,24 @@ kotlin {
 
     js(IR) {
         browser()
-        binaries.executable()
     }
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         browser()
-        binaries.executable()
     }
 
     sourceSets {
         commonMain.dependencies {
+            implementation(project(":apng-core"))
+            implementation(project(":apng-network-core"))
             implementation(project(":apng-compose"))
             implementation(libs.compose.resources)
             implementation(libs.compose.ui)
             implementation(libs.compose.foundation)
             implementation(libs.compose.runtime)
+            implementation(libs.compose.material3)
+            implementation(libs.kotlinx.coroutines)
         }
 
         commonTest.dependencies {

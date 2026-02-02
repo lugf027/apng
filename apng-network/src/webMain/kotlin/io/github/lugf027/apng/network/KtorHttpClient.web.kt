@@ -1,15 +1,19 @@
 package io.github.lugf027.apng.network
 
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.js.Js
+import io.ktor.client.plugins.HttpTimeout
 
 /**
- * Create default Ktor HTTP client for Web (WASM/JS) using JS engine.
+ * Create default Ktor HTTP client for Web (WASM/JS).
+ * Uses auto-detected engine based on the platform.
  */
-actual fun createDefaultHttpClient(): HttpClient {
-    return HttpClient(Js) {
-        engine {
-            // Configure JS engine for browser Fetch API
+actual fun createDefaultHttpClient(
+    connectTimeoutMs: Long,
+    requestTimeoutMs: Long
+): HttpClient {
+    return HttpClient {
+        install(HttpTimeout) {
+            requestTimeoutMillis = requestTimeoutMs
         }
     }
 }

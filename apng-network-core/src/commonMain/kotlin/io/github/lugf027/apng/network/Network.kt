@@ -38,7 +38,7 @@ suspend fun getDefaultResourceLoader(): ApngResourceLoader {
  * @return The loaded ApngImage
  * @throws Exception if loading fails after retries
  */
-internal suspend fun loadFromUrl(
+suspend fun loadFromUrl(
     loader: ApngLoader,
     url: String,
     httpClient: HttpClient = DefaultHttpClient,
@@ -58,7 +58,7 @@ internal suspend fun loadFromUrl(
         cacheStrategy.save(url, bytes)
     } catch (e: Exception) {
         // Log but don't fail - continue with loaded bytes
-        System.err.println("Failed to cache APNG: ${e.message}")
+        println("Failed to cache APNG: ${e.message}")
     }
 
     // 4. Parse and return
@@ -76,7 +76,7 @@ internal suspend fun loadFromUrl(
  * @return The loaded ApngImage
  * @throws Exception if loading fails
  */
-internal suspend fun loadFromSource(
+suspend fun loadFromSource(
     loader: ApngLoader,
     source: ApngSource,
     httpClient: HttpClient = DefaultHttpClient,

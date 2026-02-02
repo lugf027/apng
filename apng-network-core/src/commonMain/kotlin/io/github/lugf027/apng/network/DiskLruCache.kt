@@ -1,41 +1,51 @@
 package io.github.lugf027.apng.network
 
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import okio.ByteString.Companion.encodeUtf8
 import okio.FileNotFoundException
 import okio.FileSystem
 import okio.Path
-import okio.Path.Companion.toPath
-import kotlin.math.min
 
 /**
  * A simple LRU disk cache implementation using Okio.
  * Based on the design of compottie's DiskLruCache.
+ * Uses coroutine Mutex for thread-safety across all platforms.
  *
  * @param directory The directory to store cache files
  * @param maxSize The maximum cache size in bytes
+ * @param fileSystem The file system to use (platform-specific)
  */
 internal class DiskLruCache(
     val directory: Path,
     val maxSize: Long = 100L * 1024L * 1024L, // 100 MB default
-    private val fileSystem: FileSystem = FileSystem.SYSTEM
+    private val fileSystem: FileSystem = getSystemFileSystem()
 ) {
+    private val mutex = Mutex()
     private val accessTimes = mutableMapOf<String, Long>()
     private var currentSize = 0L
+    private var accessCounter = 0L
 
     init {
-        fileSystem.createDirectories(directory, mustCreate = false)
+        try {
+            fileSystem.createDirectories(directory, mustCreate = false)
+        } catch (_: Exception) {
+            // Directory creation may fail, but we'll handle errors during actual operations
+        }
     }
 
     /**
-     * Get cache file path for the given key.
+     * Get cache file for the given key.
      */
-    fun get(key: String): ByteArray? = synchronized(this) {
+    suspend fun get(key: String): ByteArray? = mutex.withLock {
         val path = cacheFile(key)
-        return try {
+        try {
             val bytes = fileSystem.read(path) { readByteArray() }
-            accessTimes[key] = System.currentTimeMillis()
+            accessTimes[key] = ++accessCounter
             bytes
         } catch (e: FileNotFoundException) {
+            null
+        } catch (e: Exception) {
             null
         }
     }
@@ -43,7 +53,7 @@ internal class DiskLruCache(
     /**
      * Put data in cache.
      */
-    fun put(key: String, bytes: ByteArray): Path = synchronized(this) {
+    suspend fun put(key: String, bytes: ByteArray): Path = mutex.withLock {
         val path = cacheFile(key)
         val size = bytes.size.toLong()
 
@@ -54,26 +64,30 @@ internal class DiskLruCache(
             currentSize -= oldSize
         } catch (_: FileNotFoundException) {
             // File doesn't exist, no need to remove
+        } catch (_: Exception) {
+            // Ignore other errors
         }
 
         // Add new entry
         fileSystem.write(path) { write(bytes) }
         currentSize += size
-        accessTimes[key] = System.currentTimeMillis()
+        accessTimes[key] = ++accessCounter
 
         // Evict oldest entries if cache exceeds limit
         evictIfNecessary()
 
-        return path
+        path
     }
 
     /**
      * Check if key exists in cache.
      */
-    fun contains(key: String): Boolean = synchronized(this) {
-        return try {
+    suspend fun contains(key: String): Boolean = mutex.withLock {
+        try {
             fileSystem.metadata(cacheFile(key)).size != null
         } catch (_: FileNotFoundException) {
+            false
+        } catch (_: Exception) {
             false
         }
     }
@@ -81,16 +95,20 @@ internal class DiskLruCache(
     /**
      * Delete all cache entries.
      */
-    fun clear() = synchronized(this) {
+    suspend fun clear() = mutex.withLock {
         try {
             fileSystem.listRecursively(directory).forEach { path ->
-                if (fileSystem.metadata(path).isRegularFile) {
-                    fileSystem.delete(path)
+                try {
+                    if (fileSystem.metadata(path).isRegularFile) {
+                        fileSystem.delete(path)
+                    }
+                } catch (_: Exception) {
+                    // Ignore individual file deletion errors
                 }
             }
             accessTimes.clear()
             currentSize = 0L
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // Directory may not exist
         }
     }
@@ -99,14 +117,7 @@ internal class DiskLruCache(
      * Get cache file path.
      */
     private fun cacheFile(key: String): Path {
-        return directory / key.sha256()
-    }
-
-    /**
-     * Generate SHA256 hash for key.
-     */
-    private fun String.sha256(): String {
-        return encodeUtf8().sha256().hex()
+        return directory / key.toSha256()
     }
 
     /**
@@ -129,11 +140,21 @@ internal class DiskLruCache(
                 fileSystem.delete(path)
                 currentSize -= size
                 accessTimes.remove(key)
-            } catch (e: FileNotFoundException) {
+            } catch (_: FileNotFoundException) {
                 // Already deleted
+                accessTimes.remove(key)
+            } catch (_: Exception) {
+                // Ignore errors
             }
         }
     }
+}
+
+/**
+ * Generate SHA256 hash for a string.
+ */
+private fun String.toSha256(): String {
+    return encodeUtf8().sha256().hex()
 }
 
 /**
@@ -142,3 +163,9 @@ internal class DiskLruCache(
 internal fun String.sha256(): String {
     return encodeUtf8().sha256().hex()
 }
+
+/**
+ * Get the platform-specific file system.
+ * Returns FileSystem.SYSTEM on JVM/Native, throws on Web.
+ */
+internal expect fun getSystemFileSystem(): FileSystem

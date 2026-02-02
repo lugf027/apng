@@ -115,7 +115,7 @@ private fun parseApngStructure(data: ByteArray): ApngParseResult {
         if (offset + 12 + length > data.size) break
         
         val typeBytes = data.sliceArray(offset + 4 until offset + 8)
-        val type = String(typeBytes)
+        val type = typeBytes.decodeToString()
         val chunkData = if (length > 0) data.sliceArray(offset + 8 until offset + 8 + length) else ByteArray(0)
         
         when (type) {
@@ -369,7 +369,7 @@ private fun isPngSignature(data: ByteArray): Boolean {
 }
 
 private fun createChunk(type: String, data: ByteArray): ByteArray {
-    val typeBytes = type.toByteArray(Charsets.US_ASCII)
+    val typeBytes = type.encodeToByteArray()
     val crcInput = typeBytes + data
     val crc = calculateCrc(crcInput)
     

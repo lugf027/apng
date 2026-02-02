@@ -5,7 +5,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.composeMultiplatform)
 }
 
 kotlin {
@@ -54,13 +53,11 @@ kotlin {
 
     js(IR) {
         browser()
-        binaries.executable()
     }
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         browser()
-        binaries.executable()
     }
 
     sourceSets {
@@ -92,6 +89,9 @@ kotlin {
 
         val webMain by getting {
             dependsOn(commonMain.get())
+            dependencies {
+                implementation(libs.okio.fakefilesystem)
+            }
         }
     }
 }

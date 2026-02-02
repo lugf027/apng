@@ -1,7 +1,9 @@
 package io.github.lugf027.apng.network
 
 import okio.FileSystem
+import okio.Path
 import okio.Path.Companion.toPath
+import java.io.InputStream
 
 /**
  * Desktop (JVM) implementation of ApngResourceLoader.
@@ -20,12 +22,15 @@ internal class DesktopApngResourceLoader : ApngResourceLoader {
             }
             is ApngSource.Resource -> {
                 // Try to load from classpath resources
-                val resourceStream = this::class.java.getResourceAsStream("/${source.resourcePath}")
-                    ?: fileSystem.read(source.resourcePath.toPath()) {
+                val resourceStream: InputStream? = this::class.java.getResourceAsStream("/${source.resourcePath}")
+                if (resourceStream != null) {
+                    resourceStream.use { stream -> stream.readBytes() }
+                } else {
+                    // Fallback to file system
+                    fileSystem.read(source.resourcePath.toPath()) {
                         readByteArray()
                     }
-                resourceStream?.use { it.readBytes() }
-                    ?: throw IllegalArgumentException("Resource not found: ${source.resourcePath}")
+                }
             }
             is ApngSource.Url -> {
                 throw IllegalArgumentException(
@@ -42,3 +47,16 @@ internal class DesktopApngResourceLoader : ApngResourceLoader {
 actual suspend fun createResourceLoader(): ApngResourceLoader {
     return DesktopApngResourceLoader()
 }
+
+/**
+ * Get the default cache directory for desktop platform.
+ */
+internal actual fun getDefaultCacheDirectory(): Path {
+    val tmpDir = System.getProperty("java.io.tmpdir") ?: "/tmp"
+    return "$tmpDir/apng-cache".toPath()
+}
+
+/**
+ * Get the system file system for desktop (JVM).
+ */
+internal actual fun getSystemFileSystem(): FileSystem = FileSystem.SYSTEM

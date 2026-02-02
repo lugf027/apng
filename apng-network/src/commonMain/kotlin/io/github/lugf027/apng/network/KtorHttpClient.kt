@@ -1,11 +1,16 @@
 package io.github.lugf027.apng.network
 
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.timeout
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.readBytes
+import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentLength
+import io.ktor.utils.io.readRemaining
 import kotlinx.coroutines.delay
+import kotlinx.io.readByteArray
 
 /**
  * Ktor-based HTTP client for downloading APNG files.
@@ -19,7 +24,7 @@ class KtorHttpClient(
 ) : io.github.lugf027.apng.network.HttpClient {
 
     private val httpClient: HttpClient by lazy {
-        client ?: createDefaultHttpClient()
+        client ?: createDefaultHttpClient(connectTimeoutMs, requestTimeoutMs)
     }
 
     override suspend fun download(
@@ -47,7 +52,7 @@ class KtorHttpClient(
                 val contentLength = response.contentLength() ?: 0L
                 onProgress(0, contentLength)
 
-                val bytes = response.readBytes()
+                val bytes = response.bodyAsChannel().readRemaining().readByteArray()
                 onProgress(bytes.size.toLong(), contentLength)
 
                 return bytes
@@ -73,7 +78,10 @@ class HttpException(message: String, val statusCode: Int) : Exception(message)
 /**
  * Create default HTTP client with platform-specific configuration.
  */
-expect fun createDefaultHttpClient(): HttpClient
+expect fun createDefaultHttpClient(
+    connectTimeoutMs: Long = 15000,
+    requestTimeoutMs: Long = 15000
+): HttpClient
 
 /**
  * Check if HTTP status is successful (2xx).

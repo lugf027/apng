@@ -1,8 +1,8 @@
 package io.github.lugf027.apng.network
 
 import android.content.Context
-import androidx.core.content.ContextCompat
 import okio.FileSystem
+import okio.Path
 import okio.Path.Companion.toPath
 
 /**
@@ -69,3 +69,22 @@ private fun getApplicationContext(): Context {
         )
     }
 }
+
+/**
+ * Get the default cache directory for Android platform.
+ */
+internal actual fun getDefaultCacheDirectory(): Path {
+    return try {
+        val context = getApplicationContext()
+        val cacheDir = context.cacheDir
+        "${cacheDir.absolutePath}/apng-cache".toPath()
+    } catch (e: Exception) {
+        // Fallback to temp directory
+        "/data/local/tmp/apng-cache".toPath()
+    }
+}
+
+/**
+ * Get the system file system for Android.
+ */
+internal actual fun getSystemFileSystem(): FileSystem = FileSystem.SYSTEM

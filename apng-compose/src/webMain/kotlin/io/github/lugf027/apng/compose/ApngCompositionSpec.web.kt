@@ -5,8 +5,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import io.github.lugf027.apng.core.ApngLoader
-import io.github.lugf027.apng.network.ApngSource
-import io.github.lugf027.apng.network.getDefaultResourceLoader
+import io.github.lugf027.apng.network.loadFromUrl
 import kotlinx.coroutines.launch
 
 @Composable
@@ -24,7 +23,7 @@ actual fun rememberApngCompositionSpec(
                     is ApngCompositionSpec.Bytes -> spec.data
                     is ApngCompositionSpec.Url -> {
                         val loader = ApngLoader()
-                        val image = loader.loadFromUrl(spec.url)
+                        val image = loadFromUrl(loader, spec.url)
                         result.value = ApngCompositionLoadResult.Success(image)
                         return@launch
                     }
