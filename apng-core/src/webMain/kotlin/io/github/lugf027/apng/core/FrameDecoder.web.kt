@@ -1,31 +1,31 @@
 package io.github.lugf027.apng.core
 
+import org.jetbrains.skia.Image
+
 /**
- * Web 实现的帧解码器
- * 使用 HTML5 Canvas/WebGL
+ * Web 平台的帧解码器实现
+ * 使用 Skiko 库（通过 Skia 绑定）进行 PNG 帧解码
+ * 
+ * Web 平台的 Compose Multiplatform 使用 Skiko 进行渲染，
+ * 因此可以直接使用 Skia 的 Image API 进行图像解码
  */
 class WebFrameDecoder : FrameDecoder {
-    private val imageCache = mutableMapOf<Int, Any>()
+    private val imageCache = mutableMapOf<Int, Image>()
 
     override suspend fun decodeFrame(frame: ApngFrame, imageWidth: Int, imageHeight: Int): Any {
         return try {
-            val imageData = decodeToImageData(frame.data)
-            imageCache[frame.index] = imageData
-            imageData
+            val image = Image.makeFromEncoded(frame.data)
+                ?: throw DecodingException("Failed to create image from frame data")
+            imageCache[frame.index] = image
+            image
         } catch (e: Exception) {
             throw DecodingException("Failed to decode frame ${frame.index}", e)
         }
     }
 
     override fun release() {
+        imageCache.values.forEach { it.close() }
         imageCache.clear()
-    }
-
-    private fun decodeToImageData(data: ByteArray): Any {
-        // Web platform specific implementation
-        // Uses createImageBitmap or Canvas
-        // This is a placeholder for JS interop implementation
-        return Any()
     }
 }
 

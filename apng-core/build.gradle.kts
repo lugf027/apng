@@ -95,6 +95,9 @@ kotlin {
 
         val webMain by getting {
             dependsOn(commonMain.get())
+            dependencies {
+                implementation(libs.skiko)
+            }
         }
     }
 }
