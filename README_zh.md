@@ -1,71 +1,71 @@
-# APNG Kotlin Multiplatform Library
+# APNG Kotlin 多平台库
 
-[中文版本](./README_zh.md)
+[English Version](./README.md)
 
-A high-performance, modular Kotlin Multiplatform APNG (Animated PNG) parsing and rendering library with support for network loading, caching, and cross-platform resource management.
+一个高性能、模块化的 Kotlin 多平台 APNG（动画 PNG）解析和渲染库，支持网络加载、缓存和跨平台资源管理。
 
-## Features
+## 功能特性
 
-- ✅ **APNG Parsing & Rendering**: Full support for APNG animation format
-- ✅ **Multiplatform Support**: Android, iOS, Desktop (JVM), and Web (WASM/JS)
-- ✅ **Network Loading**: Download and cache APNG files from URLs
-- ✅ **LRU Cache**: Automatic disk-based caching with size limits
-- ✅ **Progress Callbacks**: Track download progress in real-time
-- ✅ **Auto Retry**: Automatic retry with exponential backoff
-- ✅ **Compose Integration**: Native Jetpack Compose Multiplatform support
-- ✅ **Multiple Data Sources**: Load from bytes, files, URLs, or resources
-- ✅ **Error Handling**: Comprehensive error handling and fallbacks
+- ✅ **APNG 解析与渲染**：完全支持 APNG 动画格式
+- ✅ **多平台支持**：Android、iOS、Desktop（JVM）和 Web（WASM/JS）
+- ✅ **网络加载**：从 URL 下载并缓存 APNG 文件
+- ✅ **LRU 缓存**：具有大小限制的自动磁盘缓存
+- ✅ **进度回调**：实时追踪下载进度
+- ✅ **自动重试**：指数退避的自动重试机制
+- ✅ **Compose 集成**：原生 Jetpack Compose 多平台支持
+- ✅ **多数据源**：支持从字节数组、文件、URL 或资源加载
+- ✅ **错误处理**：全面的错误处理和备选方案
 
-## Architecture
+## 架构
 
-The library is organized into modular components:
+该库组织为模块化组件：
 
 ```
-apng-core/              # Core APNG parsing and rendering (no UI)
+apng-core/              # 核心 APNG 解析和渲染（无 UI）
 │
-├─ apng-network-core/   # Network loading infrastructure
-│  ├─ ApngSource        # Data source abstraction
-│  ├─ ApngResourceLoader# Platform-specific resource loading
-│  ├─ ApngCacheStrategy # Caching interface
-│  ├─ DiskLruCache      # LRU cache implementation
-│  └─ HttpClient        # HTTP client interface
+├─ apng-network-core/   # 网络加载基础设施
+│  ├─ ApngSource        # 数据源抽象
+│  ├─ ApngResourceLoader# 平台特定的资源加载
+│  ├─ ApngCacheStrategy # 缓存接口
+│  ├─ DiskLruCache      # LRU 缓存实现
+│  └─ HttpClient        # HTTP 客户端接口
 │
-├─ apng-network/        # Network loading implementation
-│  ├─ KtorHttpClient    # Ktor-based HTTP client
-│  └─ Composables       # Network loading Composables
+├─ apng-network/        # 网络加载实现
+│  ├─ KtorHttpClient    # 基于 Ktor 的 HTTP 客户端
+│  └─ Composables       # 网络加载 Composables
 │
-├─ apng-resources/      # Compose Resources support
-│  └─ Composables       # Resource loading Composables
+├─ apng-resources/      # Compose Resources 支持
+│  └─ Composables       # 资源加载 Composables
 │
-└─ apng-compose/        # Compose UI components
-   ├─ ApngImage         # Main composable
-   ├─ ApngPainter       # Painter implementation
-   └─ ApngCompositionSpec # Multi-source loading
+└─ apng-compose/        # Compose UI 组件
+   ├─ ApngImage         # 主要 composable
+   ├─ ApngPainter       # Painter 实现
+   └─ ApngCompositionSpec # 多源加载
 ```
 
-## Quick Start
+## 快速开始
 
-### Installation
+### 安装
 
-Add to your `build.gradle.kts`:
+在你的 `build.gradle.kts` 中添加：
 
 ```kotlin
 dependencies {
-    // Core library
+    // 核心库
     implementation("io.github.lugf027:apng-core:1.0.0")
     
-    // UI components
+    // UI 组件
     implementation("io.github.lugf027:apng-compose:1.0.0")
     
-    // Network loading (optional)
+    // 网络加载（可选）
     implementation("io.github.lugf027:apng-network:1.0.0")
     
-    // Resource loading (optional)
+    // 资源加载（可选）
     implementation("io.github.lugf027:apng-resources:1.0.0")
 }
 ```
 
-### Basic Usage - Load from Byte Array
+### 基础用法 - 从字节数组加载
 
 ```kotlin
 import androidx.compose.foundation.layout.*
@@ -101,7 +101,7 @@ fun DisplayApng(apngBytes: ByteArray) {
 }
 ```
 
-### Load from URL (with Network Support)
+### 从 URL 加载（需要网络支持）
 
 ```kotlin
 import io.github.lugf027.apng.network.rememberApngCompositionFromUrl
@@ -114,7 +114,7 @@ fun DisplayApngFromUrl() {
     
     when (result) {
         is ApngCompositionResult.Loading -> {
-            // Display progress
+            // 显示进度
             val progress = result.progress ?: 0f
             LinearProgressIndicator(progress)
         }
@@ -128,7 +128,7 @@ fun DisplayApngFromUrl() {
 }
 ```
 
-### Load from Local File
+### 从本地文件加载
 
 ```kotlin
 import io.github.lugf027.apng.compose.ApngCompositionSpec
@@ -138,11 +138,11 @@ fun DisplayApngFromFile(filePath: String) {
     val result = rememberApngCompositionSpec(
         spec = ApngCompositionSpec.File(filePath)
     )
-    // Handle result...
+    // 处理结果...
 }
 ```
 
-### Load from Compose Resources
+### 从 Compose Resources 加载
 
 ```kotlin
 import io.github.lugf027.apng.compose.ApngCompositionSpec
@@ -152,31 +152,31 @@ fun DisplayApngFromResources() {
     val result = rememberApngCompositionSpec(
         spec = ApngCompositionSpec.Resource("drawable/animation.apng")
     )
-    // Handle result...
+    // 处理结果...
 }
 ```
 
-## Data Sources
+## 数据源
 
 ```kotlin
-// Byte array
+// 字节数组
 ApngCompositionSpec.Bytes(data)
 
-// Local file
+// 本地文件
 ApngCompositionSpec.File(path)
 
-// Network URL
+// 网络 URL
 ApngCompositionSpec.Url(url)
 
 // Compose Resources
 ApngCompositionSpec.Resource(resourcePath)
 ```
 
-## Network Loading
+## 网络加载
 
-### Network Configuration
+### 网络配置
 
-Initialize at app startup:
+在应用启动时初始化：
 
 ```kotlin
 import io.github.lugf027.apng.network.initializeApngNetwork
@@ -185,13 +185,13 @@ import android.app.Application
 class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
-        // Initialize network module
+        // 初始化网络模块
         initializeApngNetwork()
     }
 }
 ```
 
-### Custom Configuration
+### 自定义配置
 
 ```kotlin
 import io.github.lugf027.apng.network.KtorHttpClient
@@ -200,19 +200,19 @@ import io.github.lugf027.apng.network.DefaultHttpClient
 import io.github.lugf027.apng.network.DefaultCacheStrategy
 
 fun setupNetwork() {
-    // Configure HTTP client
+    // 配置 HTTP 客户端
     DefaultHttpClient = KtorHttpClient(
-        maxRetries = 5,              // Maximum retry attempts
-        connectTimeoutMs = 30000,    // Connection timeout
-        requestTimeoutMs = 60000     // Request timeout
+        maxRetries = 5,              // 最大重试次数
+        connectTimeoutMs = 30000,    // 连接超时
+        requestTimeoutMs = 60000     // 请求超时
     )
     
-    // Use default cache (can be customized)
+    // 使用默认缓存（可自定义）
     // DefaultCacheStrategy = DiskApngCacheStrategy.Instance
 }
 ```
 
-### Progress Tracking
+### 进度追踪
 
 ```kotlin
 @Composable
@@ -232,9 +232,9 @@ fun LoadWithProgress() {
 }
 ```
 
-## Caching
+## 缓存
 
-The library automatically caches downloaded APNG files using LRU (Least Recently Used) strategy:
+该库使用 LRU（最近最少使用）策略自动缓存下载的 APNG 文件：
 
 ```kotlin
 import io.github.lugf027.apng.network.DiskApngCacheStrategy
@@ -243,28 +243,28 @@ import kotlinx.coroutines.launch
 
 val cache = DiskApngCacheStrategy.Instance
 
-// Check if URL is cached
+// 检查 URL 是否已缓存
 val cachedPath = cache.path("https://example.com/animation.apng")
 if (cachedPath != null) {
     println("Found in cache: $cachedPath")
 }
 
-// Clear all cache
+// 清空所有缓存
 lifecycleScope.launch {
     cache.clear()
     println("Cache cleared")
 }
 ```
 
-**Default cache locations:**
-- Android: `context.cacheDir/apng-cache`
-- iOS: App Documents directory
-- Desktop: System temp directory
-- Web: Browser IndexedDB (not persisted)
+**默认缓存位置：**
+- Android：`context.cacheDir/apng-cache`
+- iOS：应用文档目录
+- Desktop：系统临时目录
+- Web：浏览器 IndexedDB（不持久化）
 
-**Default cache size:** 100 MB
+**默认缓存大小：** 100 MB
 
-## Error Handling
+## 错误处理
 
 ```kotlin
 @Composable
@@ -293,14 +293,14 @@ fun HandleErrors() {
 }
 ```
 
-## Imperative API (Coroutines)
+## 命令式 API（协程）
 
 ```kotlin
 import io.github.lugf027.apng.core.ApngLoader
 
 lifecycleScope.launch {
     try {
-        // Load directly from URL
+        // 直接从 URL 加载
         val apngImage = ApngLoader().loadFromUrl(
             url = "https://example.com/animation.apng",
             onProgress = { downloaded, total ->
@@ -308,7 +308,7 @@ lifecycleScope.launch {
             }
         )
         
-        // Use the loaded image
+        // 使用加载的图像
         displayImage(apngImage)
     } catch (e: Exception) {
         showError(e.message)
@@ -316,18 +316,18 @@ lifecycleScope.launch {
 }
 ```
 
-## Platform Support
+## 平台支持
 
-| Feature | Android | iOS | Desktop | Web |
-|---------|---------|-----|---------|-----|
-| APNG Parsing | ✅ | ✅ | ✅ | ✅ |
-| File Loading | ✅ | ✅ | ✅ | ❌ |
-| Network Loading | ✅ | ✅ | ✅ | ✅ |
-| Resource Loading | ✅ | ✅ | ✅ | ❌ |
-| Caching | ✅ | ✅ | ✅ | ⚠️ |
-| HTTP Client | Ktor/OkHttp | Ktor/Darwin | Ktor/OkHttp | Ktor/JS |
+| 功能 | Android | iOS | Desktop | Web |
+|------|---------|-----|---------|-----|
+| APNG 解析 | ✅ | ✅ | ✅ | ✅ |
+| 文件加载 | ✅ | ✅ | ✅ | ❌ |
+| 网络加载 | ✅ | ✅ | ✅ | ✅ |
+| 资源加载 | ✅ | ✅ | ✅ | ❌ |
+| 缓存 | ✅ | ✅ | ✅ | ⚠️ |
+| HTTP 客户端 | Ktor/OkHttp | Ktor/Darwin | Ktor/OkHttp | Ktor/JS |
 
-## Build and Run
+## 构建和运行
 
 ### Android
 
@@ -343,15 +343,15 @@ lifecycleScope.launch {
 
 ### iOS
 
-Open `iosApp` directory in Xcode and build from there.
+在 Xcode 中打开 `iosApp` 目录并从那里构建。
 
-### Web (WASM)
+### Web（WASM）
 
 ```shell
 ./gradlew :composeApp:wasmJsBrowserDevelopmentRun
 ```
 
-## Cache Strategy Interface
+## 缓存策略接口
 
 ```kotlin
 interface ApngCacheStrategy {
@@ -362,7 +362,7 @@ interface ApngCacheStrategy {
 }
 ```
 
-Implement this interface to create a custom cache strategy:
+实现此接口来创建自定义缓存策略：
 
 ```kotlin
 class NoCacheStrategy : ApngCacheStrategy {
@@ -373,7 +373,7 @@ class NoCacheStrategy : ApngCacheStrategy {
 }
 ```
 
-## Load Result Types
+## 加载结果类型
 
 ```kotlin
 sealed interface ApngCompositionResult {
@@ -383,11 +383,11 @@ sealed interface ApngCompositionResult {
 }
 ```
 
-## Performance Tips
+## 性能建议
 
-1. **Use Caching**: Downloaded APNG files are automatically cached. Multiple accesses to the same URL won't trigger redundant downloads.
+1. **使用缓存**：下载的 APNG 文件会自动缓存。多次访问同一 URL 不会触发冗余下载。
 
-2. **Progress Feedback**: Use progress callbacks to improve user experience:
+2. **进度反馈**：使用进度回调来改进用户体验：
    ```kotlin
    rememberApngCompositionFromUrl(
        url = url,
@@ -397,37 +397,37 @@ sealed interface ApngCompositionResult {
    )
    ```
 
-3. **Error Handling**: Provide clear error messages instead of silent failures.
+3. **错误处理**：提供清晰的错误消息而不是静默失败。
 
-4. **Custom Timeouts**: Adjust timeouts based on network conditions:
+4. **自定义超时**：根据网络条件调整超时：
    ```kotlin
    DefaultHttpClient = KtorHttpClient(
-       connectTimeoutMs = 60000,  // Increase for slow networks
+       connectTimeoutMs = 60000,  // 为缓慢网络增加超时
        requestTimeoutMs = 120000
    )
    ```
 
-## Frequently Asked Questions
+## 常见问题
 
-**Q: Is there a file size limit for network loading?**
+**Q: 网络加载有文件大小限制吗？**
 
-A: The default cache size is 100MB. Files larger than this won't be cached.
+A: 默认缓存大小为 100MB。超过此大小的文件不会被缓存。
 
-**Q: Does the library support proxies?**
+**Q: 该库支持代理吗？**
 
-A: Yes, you can configure a custom `HttpClient` implementation to support proxies.
+A: 支持。你可以配置自定义 `HttpClient` 实现来支持代理。
 
-**Q: Can Web platform load local files?**
+**Q: Web 平台可以加载本地文件吗？**
 
-A: No. Due to browser security restrictions, the Web platform only supports URL loading and byte arrays.
+A: 不可以。由于浏览器安全限制，Web 平台仅支持 URL 加载和字节数组。
 
-**Q: How do I disable caching?**
+**Q: 如何禁用缓存？**
 
-A: Implement the `ApngCacheStrategy` interface to return `null` for all cache operations.
+A: 实现 `ApngCacheStrategy` 接口，对所有缓存操作返回 `null`。
 
-## Migration Guide (from older versions)
+## 迁移指南（从旧版本）
 
-### Old API
+### 旧 API
 
 ```kotlin
 val state = rememberApngStateFromPath(path)
@@ -436,7 +436,7 @@ when (state) {
 }
 ```
 
-### New API
+### 新 API
 
 ```kotlin
 val result = rememberApngCompositionSpec(
@@ -447,48 +447,48 @@ when (result) {
 }
 ```
 
-## Architecture Highlights
+## 架构亮点
 
-### Modular Design
+### 模块化设计
 
-- Separation of concerns with dedicated modules
-- Core library has no UI dependencies
-- Network loading is optional and pluggable
+- 通过专用模块分离关注点
+- 核心库没有 UI 依赖
+- 网络加载是可选的且可插拔的
 
-### Unified Resource Loading
+### 统一资源加载
 
-- Abstract `ApngSource` for all data sources
-- Platform-specific implementations via `expect/actual`
-- Consistent error handling across platforms
+- 所有数据源的抽象 `ApngSource`
+- 通过 `expect/actual` 的平台特定实现
+- 跨平台的一致错误处理
 
-### Network Infrastructure
+### 网络基础设施
 
-- Ktor-based HTTP client with automatic retry
-- LRU disk cache with configurable size
-- Progress callbacks for UI updates
-- Extensible cache and HTTP client interfaces
+- 基于 Ktor 的 HTTP 客户端，具有自动重试
+- 可配置大小的 LRU 磁盘缓存
+- 用于 UI 更新的进度回调
+- 可扩展的缓存和 HTTP 客户端接口
 
-### Cross-Platform Consistency
+### 跨平台一致性
 
-- Identical API across all platforms
-- Platform-specific optimizations where needed
-- Graceful degradation for unsupported features
+- 所有平台上相同的 API
+- 必要时的平台特定优化
+- 不支持功能的优雅降级
 
-## License
+## 许可证
 
-MIT License - see LICENSE file for details
+MIT License - 详见 LICENSE 文件
 
-## Contributing
+## 贡献
 
-Contributions are welcome! Please read our [contributing guidelines](CONTRIBUTING.md) before submitting PRs.
+欢迎贡献！在提交 PR 之前，请阅读我们的[贡献指南](CONTRIBUTING.md)。
 
-## Acknowledgments
+## 致谢
 
-This library was optimized following the architectural patterns and best practices from the [Compottie](https://github.com/alexzhirkevich/compottie) project.
+该库的优化遵循了 [Compottie](https://github.com/alexzhirkevich/compottie) 项目的架构模式和最佳实践。
 
 ---
 
-Learn more about:
+了解更多关于：
 - [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)
 - [Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform/)
 - [Kotlin/Wasm](https://kotl.in/wasm/)

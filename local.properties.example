@@ -1,0 +1,17 @@
+## This file is a template for local.properties
+## Copy this file to local.properties and fill in your actual values.
+## DO NOT commit local.properties to version control!
+#
+# Location of the SDK. This is only used by Gradle.
+# For customization when using a Version Control System, please read the
+# header note.
+#
+# Example:
+sdk.dir=/Users/YOUR_USERNAME/Library/Android/sdk
+
+# PGP signature configuration (for Maven Central publishing)
+# Generate keys using: ./gradlew generatePgpKeys
+# Then configure the values below
+# signing.password=YOUR_PGP_PASSWORD
+# signing.secretKeyRingFile=PATH_TO_YOUR_GPG_KEY
+# signing.keyId=YOUR_KEY_ID
