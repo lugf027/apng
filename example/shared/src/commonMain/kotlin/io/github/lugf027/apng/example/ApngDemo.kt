@@ -86,12 +86,13 @@ val apngResources = listOf(
 
 /**
  * 网络 APNG Demo 资源列表
+ * Note: Web platform requires CORS-enabled URLs
  */
 val networkApngResources = listOf(
     NetworkApngResource(
-        name = "IMA.Copilot",
-        url = "https://static.ima.qq.com/wupload/xy/ima_tool/qS2RGFImnOsDy97d/%E7%A7%BB%E5%8A%A8%E7%AB%AF%E6%97%A5%E9%97%B4.png",
-        description = "IMA.Copilot Spring APNG animation"
+        name = "Bouncing Ball",
+        url = "https://upload.wikimedia.org/wikipedia/commons/1/14/Animated_PNG_example_bouncing_beach_ball.png",
+        description = "Wikipedia APNG example (CORS enabled)"
     ),
 )
 
@@ -247,7 +248,7 @@ private fun NetworkTab() {
                     "Android" to "✅ Full support",
                     "iOS" to "✅ Full support (Darwin HTTP)",
                     "Desktop" to "✅ Full support",
-                    "Web" to "✅ Fetch API support"
+                    "Web" to "⚠️ Requires CORS headers"
                 ).forEach { (platform, status) ->
                     Row(
                         modifier = Modifier
