@@ -90,9 +90,8 @@ kotlin {
 
         val webMain by getting {
             dependsOn(commonMain.get())
-            dependencies {
-                implementation(libs.okio.fakefilesystem)
-            }
+            // Web platform uses custom InMemoryFileSystem instead of FakeFileSystem
+            // to avoid kotlinx-datetime dependency issues in WASM
         }
     }
 }
