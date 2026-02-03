@@ -89,9 +89,9 @@ val apngResources = listOf(
  */
 val networkApngResources = listOf(
     NetworkApngResource(
-        name = "移动端日间",
+        name = "IMA.Copilot",
         url = "https://static.ima.qq.com/wupload/xy/ima_tool/qS2RGFImnOsDy97d/%E7%A7%BB%E5%8A%A8%E7%AB%AF%E6%97%A5%E9%97%B4.png",
-        description = "IMA APNG animation"
+        description = "IMA.Copilot Spring APNG animation"
     ),
 )
 
