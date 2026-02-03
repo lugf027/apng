@@ -60,16 +60,16 @@ apng-core/              # 核心 APNG 解析和渲染（无 UI）
 ```kotlin
 dependencies {
     // 核心库
-    implementation("io.github.lugf027:apng-core:1.0.0")
+    implementation("io.github.lugf027:apng-core:0.0.1")
     
     // UI 组件
-    implementation("io.github.lugf027:apng-compose:1.0.0")
+    implementation("io.github.lugf027:apng-compose:0.0.1")
     
     // 网络加载（可选）
-    implementation("io.github.lugf027:apng-network:1.0.0")
+    implementation("io.github.lugf027:apng-network:0.0.1")
     
     // 资源加载（可选）
-    implementation("io.github.lugf027:apng-resources:1.0.0")
+    implementation("io.github.lugf027:apng-resources:0.0.1")
 }
 ```
 

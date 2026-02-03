@@ -60,16 +60,16 @@ Add to your `build.gradle.kts`:
 ```kotlin
 dependencies {
     // Core library
-    implementation("io.github.lugf027:apng-core:1.0.0")
+    implementation("io.github.lugf027:apng-core:0.0.1")
     
     // UI components
-    implementation("io.github.lugf027:apng-compose:1.0.0")
+    implementation("io.github.lugf027:apng-compose:0.0.1")
     
     // Network loading (optional)
-    implementation("io.github.lugf027:apng-network:1.0.0")
+    implementation("io.github.lugf027:apng-network:0.0.1")
     
     // Resource loading (optional)
-    implementation("io.github.lugf027:apng-resources:1.0.0")
+    implementation("io.github.lugf027:apng-resources:0.0.1")
 }
 ```
 
