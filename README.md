@@ -53,23 +53,29 @@ apng-core/              # Core APNG parsing and rendering (no UI)
 
 ## Quick Start
 
-### Installation
+### 📦 Installation
 
-Add to your `build.gradle.kts`:
+Add dependencies in `gradle/libs.versions.toml`:
+
+```toml
+[versions]
+apng = "0.0.1"
+
+[libraries]
+apng-core = { module = "io.github.lugf027:apng-core", version.ref = "apng" }
+apng-compose = { module = "io.github.lugf027:apng-compose", version.ref = "apng" }
+apng-network = { module = "io.github.lugf027:apng-network", version.ref = "apng" }
+apng-resources = { module = "io.github.lugf027:apng-resources", version.ref = "apng" }
+```
+
+Reference in your module's `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    // Core library
-    implementation("io.github.lugf027:apng-core:0.0.1")
-    
-    // UI components
-    implementation("io.github.lugf027:apng-compose:0.0.1")
-    
-    // Network loading (optional)
-    implementation("io.github.lugf027:apng-network:0.0.1")
-    
-    // Resource loading (optional)
-    implementation("io.github.lugf027:apng-resources:0.0.1")
+    implementation(libs.apng.core)       // Core library
+    implementation(libs.apng.compose)    // UI components
+    implementation(libs.apng.network)    // Network loading (optional)
+    implementation(libs.apng.resources)  // Resource loading (optional)
 }
 ```
 

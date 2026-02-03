@@ -53,23 +53,29 @@ apng-core/              # 核心 APNG 解析和渲染（无 UI）
 
 ## 快速开始
 
-### 安装
+### 📦 安装
 
-在你的 `build.gradle.kts` 中添加：
+在 `gradle/libs.versions.toml` 中添加依赖：
+
+```toml
+[versions]
+apng = "0.0.1"
+
+[libraries]
+apng-core = { module = "io.github.lugf027:apng-core", version.ref = "apng" }
+apng-compose = { module = "io.github.lugf027:apng-compose", version.ref = "apng" }
+apng-network = { module = "io.github.lugf027:apng-network", version.ref = "apng" }
+apng-resources = { module = "io.github.lugf027:apng-resources", version.ref = "apng" }
+```
+
+在模块的 `build.gradle.kts` 中引用：
 
 ```kotlin
 dependencies {
-    // 核心库
-    implementation("io.github.lugf027:apng-core:0.0.1")
-    
-    // UI 组件
-    implementation("io.github.lugf027:apng-compose:0.0.1")
-    
-    // 网络加载（可选）
-    implementation("io.github.lugf027:apng-network:0.0.1")
-    
-    // 资源加载（可选）
-    implementation("io.github.lugf027:apng-resources:0.0.1")
+    implementation(libs.apng.core)       // 核心库
+    implementation(libs.apng.compose)    // UI 组件
+    implementation(libs.apng.network)    // 网络加载（可选）
+    implementation(libs.apng.resources)  // 资源加载（可选）
 }
 ```
 
