@@ -122,21 +122,27 @@ android {
 val kotlinMppExtension: org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension? = null
 
 mavenPublishing {
+    publishToMavenCentral(true)
+
+    signAllPublications()
+
     coordinates(
         groupId = "io.github.lugf027",
         artifactId = "apng-core",
-        version = "0.0.1"
+        version = rootProject.property("VERSION").toString(),
     )
 
     pom {
         name.set("Kotlin Multiplatform APNG Core")
         description.set("Core APNG parsing and rendering library for Kotlin Multiplatform")
+        inceptionYear.set("2026")
         url.set("https://github.com/lugf027/apng")
 
         licenses {
             license {
                 name.set("MIT")
                 url.set("https://opensource.org/licenses/MIT")
+                distribution.set("repo")
             }
         }
 
