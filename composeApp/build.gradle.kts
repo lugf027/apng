@@ -46,10 +46,10 @@ kotlin {
             implementation(libs.androidx.activity.compose)
         }
         commonMain.dependencies {
-//            implementation(project(":apng-core"))        // Local Core library
-//            implementation(project(":apng-compose"))     // Local UI components
-            implementation(libs.apng.core)       // Remote Core library
-            implementation(libs.apng.compose)    // Remote UI components
+            implementation(project(":apng-core"))        // Local Core library
+            implementation(project(":apng-compose"))     // Local UI components
+//            implementation(libs.apng.core)       // Remote Core library
+//            implementation(libs.apng.compose)    // Remote UI components
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
