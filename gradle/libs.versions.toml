@@ -19,6 +19,7 @@ kotlinx-serialization = "1.7.0"
 material3 = "1.10.0-alpha05"
 okio = "3.9.0"
 skiko = "0.7.100"
+apng = "0.0.1"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -49,6 +50,10 @@ ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "ktor" }
 ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor" }
+apng-core = { module = "io.github.lugf027:apng-core", version.ref = "apng" }
+apng-compose = { module = "io.github.lugf027:apng-compose", version.ref = "apng" }
+apng-network = { module = "io.github.lugf027:apng-network", version.ref = "apng" }
+apng-resources = { module = "io.github.lugf027:apng-resources", version.ref = "apng" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
