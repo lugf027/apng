@@ -13,7 +13,7 @@ import org.jetbrains.skia.Rect
  * iOS 平台的 APNG 合成数据加载实现
  * 使用 Skia 进行 APNG 帧解析和图像处理
  */
-internal actual fun loadApngComposition(data: ByteArray): ApngComposition {
+internal actual fun parseApngCompositionData(data: ByteArray): ApngComposition {
     // 检查 PNG 签名
     if (data.size < 8 || !isPngSignature(data)) {
         throw IllegalArgumentException("Invalid PNG data")

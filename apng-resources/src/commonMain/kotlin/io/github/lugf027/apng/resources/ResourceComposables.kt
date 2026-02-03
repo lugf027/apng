@@ -1,196 +1,143 @@
 package io.github.lugf027.apng.resources
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import io.github.lugf027.apng.compose.ApngImage
-import io.github.lugf027.apng.network.ApngSource
-import io.github.lugf027.apng.network.getDefaultResourceLoader
-import kotlinx.coroutines.launch
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.dp
+import io.github.lugf027.apng.compose.ApngCompositionResult
+import io.github.lugf027.apng.compose.ApngCompositionSpec
+import io.github.lugf027.apng.compose.rememberApngComposition
+import io.github.lugf027.apng.compose.rememberApngPainter
 
 /**
- * Result of loading APNG bytes from resources.
- */
-sealed class ResourceLoadResult {
-    /** Loading in progress */
-    data class Loading(val progress: Float = 0f) : ResourceLoadResult()
-    
-    /** Successfully loaded */
-    data class Success(val bytes: ByteArray) : ResourceLoadResult() {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other !is Success) return false
-            return bytes.contentEquals(other.bytes)
-        }
-        override fun hashCode(): Int = bytes.contentHashCode()
-    }
-    
-    /** Error during loading */
-    data class Error(val exception: Exception) : ResourceLoadResult()
-}
-
-/**
- * Load and remember APNG bytes from a resource path.
+ * Remember and load APNG composition from Compose Resources.
  *
  * Example:
  * ```kotlin
  * @Composable
  * fun MyScreen() {
  *     val result = rememberApngCompositionFromResource(
- *         resourcePath = "files/animation.apng"
+ *         resourcePath = "animation.apng",
+ *         readBytes = Res::readBytes
  *     )
  *     
  *     when (result) {
- *         is ResourceLoadResult.Loading -> CircularProgressIndicator()
- *         is ResourceLoadResult.Success -> ApngImage(data = result.bytes, contentDescription = null)
- *         is ResourceLoadResult.Error -> Text("Failed to load: ${result.exception.message}")
+ *         is ApngCompositionResult.Loading -> CircularProgressIndicator()
+ *         is ApngCompositionResult.Success -> {
+ *             val painter = rememberApngPainter(result.composition)
+ *             Image(painter = painter, contentDescription = null)
+ *         }
+ *         is ApngCompositionResult.Error -> Text("Failed to load: ${result.throwable.message}")
  *     }
  * }
  * ```
+ * 
+ * @param resourcePath The resource path relative to files directory
+ * @param readBytes The function to read bytes from resources (typically `Res::readBytes`)
+ * @param directory The directory in composeResources (default: "files")
+ * @return The loading result
  */
 @Composable
 fun rememberApngCompositionFromResource(
-    resourcePath: String
-): ResourceLoadResult {
-    val result = remember { mutableStateOf<ResourceLoadResult>(ResourceLoadResult.Loading()) }
-
-    LaunchedEffect(resourcePath) {
-        result.value = ResourceLoadResult.Loading()
-        
-        launch {
-            try {
-                val resourceLoader = getDefaultResourceLoader()
-                val bytes = resourceLoader.load(ApngSource.Resource(resourcePath))
-                result.value = ResourceLoadResult.Success(bytes)
-            } catch (e: Exception) {
-                result.value = ResourceLoadResult.Error(e)
-            }
-        }
+    resourcePath: String,
+    readBytes: suspend (path: String) -> ByteArray,
+    directory: String = "files"
+): ApngCompositionResult {
+    return rememberApngComposition {
+        ApngCompositionSpec.Resource(resourcePath, readBytes, directory)
     }
-
-    return result.value
 }
 
 /**
- * Load and remember APNG bytes from a local file path.
- *
- * Example:
- * ```kotlin
- * @Composable
- * fun MyScreen() {
- *     val result = rememberApngCompositionFromFile(
- *         filePath = "/path/to/animation.apng"
- *     )
- *     
- *     when (result) {
- *         is ResourceLoadResult.Loading -> CircularProgressIndicator()
- *         is ResourceLoadResult.Success -> ApngImage(data = result.bytes, contentDescription = null)
- *         is ResourceLoadResult.Error -> Text("Failed to load: ${result.exception.message}")
- *     }
- * }
- * ```
- */
-@Composable
-fun rememberApngCompositionFromFile(
-    filePath: String
-): ResourceLoadResult {
-    val result = remember { mutableStateOf<ResourceLoadResult>(ResourceLoadResult.Loading()) }
-
-    LaunchedEffect(filePath) {
-        result.value = ResourceLoadResult.Loading()
-        
-        launch {
-            try {
-                val resourceLoader = getDefaultResourceLoader()
-                val bytes = resourceLoader.load(ApngSource.File(filePath))
-                result.value = ResourceLoadResult.Success(bytes)
-            } catch (e: Exception) {
-                result.value = ResourceLoadResult.Error(e)
-            }
-        }
-    }
-
-    return result.value
-}
-
-/**
- * Simplified Composable to display APNG from resources with built-in loading and error states.
+ * Simplified Composable to display APNG from Compose Resources with built-in loading and error states.
  *
  * Example:
  * ```kotlin
  * @Composable
  * fun MyScreen() {
  *     ApngImageFromResource(
- *         resourcePath = "files/animation.apng",
+ *         resourcePath = "animation.apng",
+ *         readBytes = Res::readBytes,
  *         contentDescription = "Loading animation"
  *     )
  * }
  * ```
+ * 
+ * @param resourcePath The resource path relative to files directory
+ * @param readBytes The function to read bytes from resources (typically `Res::readBytes`)
+ * @param directory The directory in composeResources (default: "files")
+ * @param contentDescription Content description for accessibility
+ * @param modifier Modifier
+ * @param contentScale Content scale mode
+ * @param autoPlay Whether to auto-play the animation
+ * @param speed Playback speed multiplier
+ * @param iterations Number of loops, 0 means infinite
+ * @param onLoading Composable to show during loading
+ * @param onError Composable to show on error
  */
 @Composable
 fun ApngImageFromResource(
     resourcePath: String,
+    readBytes: suspend (path: String) -> ByteArray,
+    directory: String = "files",
     contentDescription: String? = null,
     modifier: Modifier = Modifier,
+    contentScale: ContentScale = ContentScale.Fit,
+    autoPlay: Boolean = true,
+    speed: Float = 1f,
+    iterations: Int = 0,
     onLoading: @Composable () -> Unit = {
         CircularProgressIndicator()
     },
-    onError: @Composable (Exception) -> Unit = { exception ->
+    onError: @Composable (Throwable) -> Unit = { throwable ->
         Text(
-            "Failed to load: ${exception.message}",
+            "Failed to load: ${throwable.message}",
             color = MaterialTheme.colorScheme.error
         )
     }
 ) {
-    val result = rememberApngCompositionFromResource(resourcePath)
+    val compositionResult = rememberApngComposition {
+        ApngCompositionSpec.Resource(resourcePath, readBytes, directory)
+    }
     
-    when (result) {
-        is ResourceLoadResult.Loading -> onLoading()
-        is ResourceLoadResult.Success -> {
-            ApngImage(
-                data = result.bytes,
+    when (compositionResult) {
+        is ApngCompositionResult.Loading -> {
+            Box(
+                modifier = modifier,
+                contentAlignment = Alignment.Center
+            ) {
+                onLoading()
+            }
+        }
+        is ApngCompositionResult.Error -> {
+            Box(
+                modifier = modifier,
+                contentAlignment = Alignment.Center
+            ) {
+                onError(compositionResult.throwable)
+            }
+        }
+        is ApngCompositionResult.Success -> {
+            val painter = rememberApngPainter(
+                composition = compositionResult.composition,
+                autoPlay = autoPlay,
+                speed = speed,
+                iterations = iterations
+            )
+            
+            Image(
+                painter = painter,
                 contentDescription = contentDescription,
-                modifier = modifier
+                modifier = modifier,
+                contentScale = contentScale
             )
         }
-        is ResourceLoadResult.Error -> onError(result.exception)
-    }
-}
-
-/**
- * Simplified Composable to display APNG from a local file with built-in loading and error states.
- */
-@Composable
-fun ApngImageFromFile(
-    filePath: String,
-    contentDescription: String? = null,
-    modifier: Modifier = Modifier,
-    onLoading: @Composable () -> Unit = {
-        CircularProgressIndicator()
-    },
-    onError: @Composable (Exception) -> Unit = { exception ->
-        Text(
-            "Failed to load: ${exception.message}",
-            color = MaterialTheme.colorScheme.error
-        )
-    }
-) {
-    val result = rememberApngCompositionFromFile(filePath)
-    
-    when (result) {
-        is ResourceLoadResult.Loading -> onLoading()
-        is ResourceLoadResult.Success -> {
-            ApngImage(
-                data = result.bytes,
-                contentDescription = contentDescription,
-                modifier = modifier
-            )
-        }
-        is ResourceLoadResult.Error -> onError(result.exception)
     }
 }

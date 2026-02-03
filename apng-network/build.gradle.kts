@@ -67,6 +67,7 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":apng-network-core"))
             implementation(project(":apng-core"))
+            implementation(project(":apng-compose"))
             implementation(libs.ktor.client.core)
             implementation(libs.compose.ui)
             implementation(libs.compose.foundation)

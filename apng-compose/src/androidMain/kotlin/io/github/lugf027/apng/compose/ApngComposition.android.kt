@@ -8,7 +8,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 /**
  * Android 平台的 APNG 合成数据加载实现
  */
-internal actual fun loadApngComposition(data: ByteArray): ApngComposition {
+internal actual fun parseApngCompositionData(data: ByteArray): ApngComposition {
     // 检查 PNG 签名
     if (data.size < 8 || !isPngSignature(data)) {
         throw IllegalArgumentException("Invalid PNG data")

@@ -48,6 +48,7 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":apng-core"))        // Local Core library
             implementation(project(":apng-compose"))     // Local UI components
+            implementation(project(":apng-resources"))   // Local Resources support
 //            implementation(libs.apng.core)       // Remote Core library
 //            implementation(libs.apng.compose)    // Remote UI components
             implementation(libs.compose.runtime)

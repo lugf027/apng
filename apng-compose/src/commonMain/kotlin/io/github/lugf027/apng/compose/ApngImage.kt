@@ -12,18 +12,18 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 
 /**
- * APNG 图像显示组件
+ * APNG image display component.
  * 
- * 使用 Compose Painter 进行渲染，参考 compottie 的设计理念
+ * Uses Compose Painter for rendering, inspired by compottie's design.
  * 
- * @param data APNG 图像数据
- * @param contentDescription 内容描述（用于无障碍）
- * @param modifier 修饰符
- * @param contentScale 内容缩放方式
- * @param autoPlay 是否自动播放动画
- * @param speed 播放速度倍率
- * @param iterations 循环次数，0 表示无限循环
- * @param onError 错误回调
+ * @param data APNG image data as bytes
+ * @param contentDescription Content description for accessibility
+ * @param modifier Modifier
+ * @param contentScale Content scale mode
+ * @param autoPlay Whether to auto-play the animation
+ * @param speed Playback speed multiplier
+ * @param iterations Number of loops, 0 means infinite
+ * @param onError Error callback
  */
 @Composable
 fun ApngImage(
@@ -77,15 +77,88 @@ fun ApngImage(
 }
 
 /**
- * APNG 图像显示组件 - 使用预加载的合成数据
+ * APNG image display component - using a spec.
  * 
- * @param composition APNG 合成数据
- * @param contentDescription 内容描述（用于无障碍）
- * @param modifier 修饰符
- * @param contentScale 内容缩放方式
- * @param autoPlay 是否自动播放动画
- * @param speed 播放速度倍率
- * @param iterations 循环次数，0 表示无限循环
+ * This is the recommended API for loading APNG from various sources.
+ * 
+ * Example:
+ * ```kotlin
+ * ApngImage(
+ *     spec = { ApngCompositionSpec.Url("https://example.com/anim.apng") },
+ *     contentDescription = "Animation"
+ * )
+ * ```
+ * 
+ * @param spec Lambda that returns the composition spec
+ * @param contentDescription Content description for accessibility
+ * @param modifier Modifier
+ * @param contentScale Content scale mode
+ * @param autoPlay Whether to auto-play the animation
+ * @param speed Playback speed multiplier
+ * @param iterations Number of loops, 0 means infinite
+ * @param onError Error callback
+ */
+@Composable
+fun ApngImage(
+    spec: () -> ApngCompositionSpec,
+    contentDescription: String?,
+    modifier: Modifier = Modifier,
+    contentScale: ContentScale = ContentScale.Fit,
+    autoPlay: Boolean = true,
+    speed: Float = 1f,
+    iterations: Int = 0,
+    onError: ((Throwable) -> Unit)? = null
+) {
+    val compositionResult = rememberApngComposition(spec)
+    
+    when (compositionResult) {
+        is ApngCompositionResult.Loading -> {
+            Box(
+                modifier = modifier,
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(48.dp)
+                )
+            }
+        }
+        is ApngCompositionResult.Error -> {
+            onError?.invoke(compositionResult.throwable)
+            Box(
+                modifier = modifier,
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Error: ${compositionResult.throwable.message}")
+            }
+        }
+        is ApngCompositionResult.Success -> {
+            val painter = rememberApngPainter(
+                composition = compositionResult.composition,
+                autoPlay = autoPlay,
+                speed = speed,
+                iterations = iterations
+            )
+            
+            Image(
+                painter = painter,
+                contentDescription = contentDescription,
+                modifier = modifier,
+                contentScale = contentScale
+            )
+        }
+    }
+}
+
+/**
+ * APNG image display component - using pre-loaded composition data.
+ * 
+ * @param composition APNG composition data
+ * @param contentDescription Content description for accessibility
+ * @param modifier Modifier
+ * @param contentScale Content scale mode
+ * @param autoPlay Whether to auto-play the animation
+ * @param speed Playback speed multiplier
+ * @param iterations Number of loops, 0 means infinite
  */
 @Composable
 fun ApngImage(
@@ -113,13 +186,13 @@ fun ApngImage(
 }
 
 /**
- * APNG 图像显示组件 - 使用自定义进度控制
+ * APNG image display component - using custom progress control.
  * 
- * @param composition APNG 合成数据
- * @param progress 当前播放进度的 lambda（0.0-1.0）
- * @param contentDescription 内容描述（用于无障碍）
- * @param modifier 修饰符
- * @param contentScale 内容缩放方式
+ * @param composition APNG composition data
+ * @param progress Current playback progress lambda (0.0-1.0)
+ * @param contentDescription Content description for accessibility
+ * @param modifier Modifier
+ * @param contentScale Content scale mode
  */
 @Composable
 fun ApngImage(

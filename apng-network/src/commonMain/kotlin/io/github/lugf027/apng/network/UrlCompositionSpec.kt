@@ -1,94 +1,110 @@
 package io.github.lugf027.apng.network
 
-import io.github.lugf027.apng.core.ApngImage
-import io.github.lugf027.apng.core.ApngLoader
+import io.github.lugf027.apng.compose.ApngComposition
+import io.github.lugf027.apng.compose.ApngCompositionSpec
 
 /**
- * Utility functions for creating URL-based APNG loading specs.
- * Provides convenient shortcuts for common loading scenarios.
- */
-
-/**
- * Load APNG from a network URL with default settings.
- *
+ * Create an [ApngCompositionSpec] that loads from a network URL.
+ * 
+ * This is the convenient API with default Ktor HTTP client.
+ * 
  * Example:
  * ```kotlin
- * val image = ApngLoader().loadFromUrl(
- *     url = "https://example.com/animation.apng"
- * )
+ * val composition by rememberApngComposition {
+ *     ApngCompositionSpec.Url("https://example.com/animation.apng")
+ * }
  * ```
- *
- * @param url The URL to load from
- * @param httpClient The HTTP client to use
- * @param cacheStrategy The cache strategy to use
- * @param onProgress Progress callback
- * @return The loaded APNG image
+ * 
+ * @param url The network URL to load from
+ * @param cacheStrategy The cache strategy to use (default: disk cache)
+ * @return An [ApngCompositionSpec] that loads from the URL
  */
-suspend fun ApngLoader.loadFromUrl(
+public fun ApngCompositionSpec.Companion.Url(
     url: String,
-    httpClient: HttpClient = DefaultHttpClient,
     cacheStrategy: ApngCacheStrategy = DefaultCacheStrategy,
-    onProgress: (downloaded: Long, total: Long) -> Unit = { _, _ -> }
-): ApngImage {
+): ApngCompositionSpec {
     // Make sure network is initialized
     if (DefaultHttpClient !is KtorHttpClient) {
         initializeApngNetwork()
     }
-    return io.github.lugf027.apng.network.loadFromUrl(
-        this,
-        url,
-        httpClient,
-        cacheStrategy,
-        onProgress
+    return Url(
+        url = url,
+        request = { requestUrl -> DefaultHttpClient.download(requestUrl) },
+        cacheStrategy = cacheStrategy
     )
 }
 
 /**
- * Load APNG from any source.
- *
+ * Create an [ApngCompositionSpec] that loads from a network URL with custom request.
+ * 
+ * This API allows providing a custom HTTP request function.
+ * 
  * Example:
  * ```kotlin
- * val source = ApngSource.Url("https://example.com/animation.apng")
- * val image = ApngLoader().loadFromSource(source)
+ * val composition by rememberApngComposition {
+ *     ApngCompositionSpec.Url(
+ *         url = "https://example.com/animation.apng",
+ *         request = { url -> myCustomHttpClient.get(url) }
+ *     )
+ * }
  * ```
+ * 
+ * @param url The network URL to load from
+ * @param request The network request function
+ * @param cacheStrategy The cache strategy to use (default: disk cache)
+ * @return An [ApngCompositionSpec] that loads from the URL
  */
-suspend fun ApngLoader.loadFromSource(
-    source: ApngSource,
-    httpClient: HttpClient = DefaultHttpClient,
+public fun ApngCompositionSpec.Companion.Url(
+    url: String,
+    request: suspend (url: String) -> ByteArray,
     cacheStrategy: ApngCacheStrategy = DefaultCacheStrategy,
-    onProgress: (downloaded: Long, total: Long) -> Unit = { _, _ -> }
-): ApngImage {
-    return io.github.lugf027.apng.network.loadFromSource(
-        this,
-        source,
-        httpClient,
-        cacheStrategy,
-        onProgress
-    )
+): ApngCompositionSpec = NetworkCompositionSpec(
+    url = url,
+    request = request,
+    cacheStrategy = cacheStrategy
+)
+
+/**
+ * Internal implementation of URL-based ApngCompositionSpec.
+ */
+private class NetworkCompositionSpec(
+    private val url: String,
+    private val request: suspend (url: String) -> ByteArray,
+    private val cacheStrategy: ApngCacheStrategy
+) : ApngCompositionSpec {
+
+    override val key: String
+        get() = "url_$url"
+
+    override suspend fun load(): ApngComposition {
+        val bytes = networkLoad(request, cacheStrategy, url)
+        
+        return checkNotNull(bytes?.let { ApngComposition.parse(it) }) {
+            "Failed to load APNG from $url"
+        }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as NetworkCompositionSpec
+
+        if (url != other.url) return false
+        if (request != other.request) return false
+        if (cacheStrategy != other.cacheStrategy) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = url.hashCode()
+        result = 31 * result + request.hashCode()
+        result = 31 * result + cacheStrategy.hashCode()
+        return result
+    }
+    
+    override fun toString(): String {
+        return "Url(url='$url', key=$key)"
+    }
 }
-
-/**
- * Create an ApngSource for a URL.
- *
- * Example:
- * ```kotlin
- * val source = ApngSource.Url("https://example.com/animation.apng")
- * val image = ApngLoader().loadFromSource(source)
- * ```
- */
-fun urlSource(url: String): ApngSource.Url = ApngSource.Url(url)
-
-/**
- * Create an ApngSource for bytes.
- */
-fun bytesSource(data: ByteArray): ApngSource.Bytes = ApngSource.Bytes(data)
-
-/**
- * Create an ApngSource for a file.
- */
-fun fileSource(path: String): ApngSource.File = ApngSource.File(path)
-
-/**
- * Create an ApngSource for a resource.
- */
-fun resourceSource(resourcePath: String): ApngSource.Resource = ApngSource.Resource(resourcePath)

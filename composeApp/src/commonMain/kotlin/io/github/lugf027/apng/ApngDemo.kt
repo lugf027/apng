@@ -2,12 +2,9 @@ package io.github.lugf027.apng
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -17,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -27,14 +23,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,12 +36,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import apng.composeapp.generated.resources.Res
+import io.github.lugf027.apng.compose.ApngCompositionResult
+import io.github.lugf027.apng.compose.ApngCompositionSpec
 import io.github.lugf027.apng.compose.ApngImage
+import io.github.lugf027.apng.compose.rememberApngComposition
+import io.github.lugf027.apng.compose.rememberApngPainter
+import io.github.lugf027.apng.resources.ApngImageFromResource
+import io.github.lugf027.apng.resources.Resource
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 /**
@@ -409,22 +408,12 @@ private fun InfoRow(label: String, value: String) {
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 private fun ApngCard(resource: ApngResource) {
-    var apngData by remember { mutableStateOf<ByteArray?>(null) }
-    var isLoading by remember { mutableStateOf(true) }
-    var loadError by remember { mutableStateOf<String?>(null) }
-
-    // Load APNG data from resources
-    LaunchedEffect(resource.fileName) {
-        isLoading = true
-        loadError = null
-        try {
-            val bytes = Res.readBytes("files/${resource.fileName}")
-            apngData = bytes
-            isLoading = false
-        } catch (e: Exception) {
-            loadError = e.message ?: "加载失败"
-            isLoading = false
-        }
+    // Use new ApngCompositionSpec.Resource API
+    val compositionResult = rememberApngComposition {
+        ApngCompositionSpec.Resource(
+            resourcePath = resource.fileName,
+            readBytes = Res::readBytes
+        )
     }
 
     Card(
@@ -459,30 +448,33 @@ private fun ApngCard(resource: ApngResource) {
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                when {
-                    isLoading -> {
+                when (compositionResult) {
+                    is ApngCompositionResult.Loading -> {
                         CircularProgressIndicator(
                             modifier = Modifier.size(32.dp),
                             color = MaterialTheme.colorScheme.primary
                         )
                     }
-                    loadError != null -> {
+                    is ApngCompositionResult.Error -> {
                         Text(
-                            text = "⚠️ ${loadError?.take(20)}",
+                            text = "⚠️ ${compositionResult.throwable.message?.take(20)}",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.error,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.padding(8.dp)
                         )
                     }
-                    apngData != null -> {
-                        ApngImage(
-                            data = apngData!!,
+                    is ApngCompositionResult.Success -> {
+                        val painter = rememberApngPainter(
+                            composition = compositionResult.composition,
+                            autoPlay = true
+                        )
+                        androidx.compose.foundation.Image(
+                            painter = painter,
                             contentDescription = resource.name,
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(8.dp),
-                            autoPlay = true
+                                .padding(8.dp)
                         )
                     }
                 }
