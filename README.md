@@ -16,6 +16,8 @@ A high-performance, modular Kotlin Multiplatform APNG (Animated PNG) parsing and
 - ✅ **Multiple Data Sources**: Load from bytes, files, URLs, or resources
 - ✅ **Error Handling**: Comprehensive error handling and fallbacks
 
+![](./docs/images/demo_desktop.png)
+
 ## Architecture
 
 The library is organized into modular components:
@@ -480,7 +482,7 @@ MIT License - see LICENSE file for details
 
 ## Contributing
 
-Contributions are welcome! Please read our [contributing guidelines](CONTRIBUTING.md) before submitting PRs.
+Contributions are welcome! Please read our [contributing guidelines](docs/CONTRIBUTING.md) before submitting PRs.
 
 ## Acknowledgments
 

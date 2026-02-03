@@ -16,6 +16,8 @@
 - ✅ **多数据源**：支持从字节数组、文件、URL 或资源加载
 - ✅ **错误处理**：全面的错误处理和备选方案
 
+![](./docs/images/demo_desktop.png)
+
 ## 架构
 
 该库组织为模块化组件：
@@ -480,7 +482,7 @@ MIT License - 详见 LICENSE 文件
 
 ## 贡献
 
-欢迎贡献！在提交 PR 之前，请阅读我们的[贡献指南](CONTRIBUTING.md)。
+欢迎贡献！在提交 PR 之前，请阅读我们的[贡献指南](docs/CONTRIBUTING.md)。
 
 ## 致谢
 
