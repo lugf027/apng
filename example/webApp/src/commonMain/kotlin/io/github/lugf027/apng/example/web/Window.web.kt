@@ -1,0 +1,8 @@
+package io.github.lugf027.apng.example.web
+
+import androidx.compose.runtime.Composable
+
+internal expect fun CompatComposeWindow(
+    containerId: String? = null,
+    content: @Composable () -> Unit
+)
