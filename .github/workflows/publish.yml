@@ -10,6 +10,7 @@ jobs:
   publish:
     name: Release build and publish
     runs-on: macOS-latest
+    timeout-minutes: 60  # 设置 job 超时时间为 60 分钟
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -22,6 +23,7 @@ jobs:
           cache: 'gradle'
 
       - name: Publish to MavenCentral
+        timeout-minutes: 45  # 单独为发布步骤设置超时时间
         run: ./gradlew publishAllPublicationsToMavenCentralRepository --no-configuration-cache
         env:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
