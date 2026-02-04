@@ -1,5 +1,7 @@
 package io.github.lugf027.apng.network
 
+import io.github.lugf027.apng.logger.ApngLogTags
+import io.github.lugf027.apng.logger.ApngLogger
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.timeout
@@ -31,10 +33,15 @@ class KtorHttpClient(
         url: String,
         onProgress: (downloaded: Long, total: Long) -> Unit
     ): ByteArray {
+        ApngLogger.d(ApngLogTags.NETWORK, "KtorHttpClient: Starting download from $url")
         var lastException: Exception? = null
 
         repeat(maxRetries) { attempt ->
             try {
+                if (attempt > 0) {
+                    ApngLogger.d(ApngLogTags.NETWORK) { "KtorHttpClient: Retry attempt ${attempt + 1}/$maxRetries for $url" }
+                }
+                
                 val response: HttpResponse = httpClient.get(url) {
                     timeout {
                         connectTimeoutMillis = connectTimeoutMs
@@ -43,6 +50,7 @@ class KtorHttpClient(
                 }
 
                 if (!response.status.isSuccess()) {
+                    ApngLogger.w(ApngLogTags.NETWORK) { "KtorHttpClient: HTTP error ${response.status.value} for $url" }
                     throw HttpException(
                         "HTTP ${response.status.value}: ${response.status.description}",
                         response.status.value
@@ -50,22 +58,27 @@ class KtorHttpClient(
                 }
 
                 val contentLength = response.contentLength() ?: 0L
+                ApngLogger.v(ApngLogTags.NETWORK) { "KtorHttpClient: Content-Length=$contentLength for $url" }
                 onProgress(0, contentLength)
 
                 val bytes = response.bodyAsChannel().readRemaining().readByteArray()
                 onProgress(bytes.size.toLong(), contentLength)
 
+                ApngLogger.i(ApngLogTags.NETWORK) { "KtorHttpClient: Downloaded ${bytes.size} bytes from $url" }
                 return bytes
 
             } catch (e: Exception) {
                 lastException = e
+                ApngLogger.w(ApngLogTags.NETWORK, "KtorHttpClient: Download attempt ${attempt + 1} failed for $url: ${e.message}")
                 if (attempt < maxRetries - 1) {
                     val delayMs = (1000L * (attempt + 1)) // Exponential backoff: 1s, 2s, 3s
+                    ApngLogger.d(ApngLogTags.NETWORK) { "KtorHttpClient: Retrying in ${delayMs}ms" }
                     delay(delayMs)
                 }
             }
         }
 
+        ApngLogger.e(ApngLogTags.NETWORK, "KtorHttpClient: All retries failed for $url", lastException)
         throw lastException ?: Exception("Failed to download from $url after $maxRetries retries")
     }
 }

@@ -13,6 +13,7 @@ kotlin {
 
 dependencies {
     implementation(project(":example:shared"))
+    implementation(project(":apng-logger"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
 //    implementation(compose.uiTooling)

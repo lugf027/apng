@@ -48,6 +48,7 @@ kotlin {
         commonMain.dependencies {
             implementation(compose.foundation)
             implementation(project(":example:shared"))
+            implementation(project(":apng-logger"))
         }
     }
 }

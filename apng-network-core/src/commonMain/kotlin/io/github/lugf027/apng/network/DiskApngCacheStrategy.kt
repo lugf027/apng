@@ -1,5 +1,7 @@
 package io.github.lugf027.apng.network
 
+import io.github.lugf027.apng.logger.ApngLogTags
+import io.github.lugf027.apng.logger.ApngLogger
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import okio.Path
@@ -20,24 +22,32 @@ class DiskApngCacheStrategy internal constructor(
 
     override suspend fun save(url: String, bytes: ByteArray): Path? {
         return try {
-            diskCache.put(url.sha256(), bytes)
+            val path = diskCache.put(url.sha256(), bytes)
+            ApngLogger.v(ApngLogTags.CACHE) { "DiskApngCacheStrategy: Saved ${bytes.size} bytes to $path" }
+            path
         } catch (e: Exception) {
-            println("Failed to save APNG to cache: ${e.message}")
+            ApngLogger.w(ApngLogTags.CACHE, "DiskApngCacheStrategy: Failed to save to cache: ${e.message}", e)
             null
         }
     }
 
     override suspend fun load(url: String): ByteArray? {
         return try {
-            diskCache.get(url.sha256())
+            val bytes = diskCache.get(url.sha256())
+            if (bytes != null) {
+                ApngLogger.v(ApngLogTags.CACHE) { "DiskApngCacheStrategy: Loaded ${bytes.size} bytes from cache" }
+            }
+            bytes
         } catch (e: Exception) {
-            println("Failed to load APNG from cache: ${e.message}")
+            ApngLogger.w(ApngLogTags.CACHE, "DiskApngCacheStrategy: Failed to load from cache: ${e.message}", e)
             null
         }
     }
 
     override suspend fun clear() {
+        ApngLogger.d(ApngLogTags.CACHE, "DiskApngCacheStrategy: Clearing cache")
         diskCache.clear()
+        ApngLogger.i(ApngLogTags.CACHE, "DiskApngCacheStrategy: Cache cleared")
     }
 
     companion object {
@@ -55,6 +65,7 @@ class DiskApngCacheStrategy internal constructor(
         ): DiskApngCacheStrategy = mutex.withLock {
             instance ?: run {
                 val directory = cacheDir ?: getDefaultCacheDirectory()
+                ApngLogger.d(ApngLogTags.CACHE) { "DiskApngCacheStrategy: Creating instance with cacheDir=$directory, maxSize=$maxSize" }
                 val diskCache = DiskLruCache(directory, maxSize)
                 DiskApngCacheStrategy(diskCache).also { instance = it }
             }
@@ -71,6 +82,7 @@ class DiskApngCacheStrategy internal constructor(
                 
                 // Slow path: create new instance (not perfectly thread-safe but acceptable for lazy init)
                 val directory = getDefaultCacheDirectory()
+                ApngLogger.d(ApngLogTags.CACHE) { "DiskApngCacheStrategy: Lazy creating instance with default cacheDir=$directory" }
                 val diskCache = DiskLruCache(directory)
                 return DiskApngCacheStrategy(diskCache).also { instance = it }
             }

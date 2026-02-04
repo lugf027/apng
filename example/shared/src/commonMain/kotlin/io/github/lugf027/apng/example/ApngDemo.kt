@@ -444,7 +444,6 @@ private fun InfoRow(label: String, value: String) {
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 private fun ApngCard(resource: ApngResource) {
-    // Use new ApngCompositionSpec.Resource API
     val compositionResult = rememberApngComposition {
         ApngCompositionSpec.Resource(
             resourcePath = resource.fileName,

@@ -1,6 +1,8 @@
 package io.github.lugf027.apng.compose
 
 import androidx.compose.ui.graphics.toComposeImageBitmap
+import io.github.lugf027.apng.logger.ApngLogTags
+import io.github.lugf027.apng.logger.ApngLogger
 import org.jetbrains.skia.Canvas
 import org.jetbrains.skia.Image
 import org.jetbrains.skia.Paint
@@ -11,16 +13,22 @@ import org.jetbrains.skia.Rect
  * 使用 Skia 进行 APNG 帧解析和图像处理
  */
 internal actual fun parseApngCompositionData(data: ByteArray): ApngComposition {
+    ApngLogger.d(ApngLogTags.COMPOSE, "[Desktop] Starting to parse APNG composition")
+    
     // 检查 PNG 签名
     if (data.size < 8 || !isPngSignature(data)) {
+        ApngLogger.e(ApngLogTags.COMPOSE, "[Desktop] Invalid PNG signature")
         throw IllegalArgumentException("Invalid PNG data")
     }
+    ApngLogger.v(ApngLogTags.COMPOSE, "[Desktop] PNG signature validated")
     
     // 解析 APNG 结构
     val parseResult = parseApngStructure(data)
+    ApngLogger.d(ApngLogTags.COMPOSE) { "[Desktop] APNG structure parsed: ${parseResult.globalWidth}x${parseResult.globalHeight}, hasActl=${parseResult.hasActl}, frames=${parseResult.frameInfoList.size}" }
     
     if (!parseResult.hasActl || parseResult.frameInfoList.isEmpty()) {
         // 不是 APNG，作为静态图像处理
+        ApngLogger.d(ApngLogTags.COMPOSE, "[Desktop] Not an APNG, treating as static image")
         val image = Image.makeFromEncoded(data)
         
         val bitmap = image.toComposeImageBitmap()
@@ -41,6 +49,7 @@ internal actual fun parseApngCompositionData(data: ByteArray): ApngComposition {
     }
     
     // 构建每帧的完整图像
+    ApngLogger.d(ApngLogTags.COMPOSE) { "[Desktop] Building ${parseResult.frameInfoList.size} frames" }
     val frames = buildFrames(
         parseResult.ihdrData!!,
         parseResult.commonChunks,
@@ -48,6 +57,8 @@ internal actual fun parseApngCompositionData(data: ByteArray): ApngComposition {
         parseResult.globalWidth,
         parseResult.globalHeight
     )
+    
+    ApngLogger.i(ApngLogTags.COMPOSE) { "[Desktop] Successfully built ${frames.size} frames for ${parseResult.globalWidth}x${parseResult.globalHeight} APNG" }
     
     return ApngComposition(
         width = parseResult.globalWidth,
@@ -313,8 +324,7 @@ private fun buildFrames(
                 }
             }
         } catch (e: Exception) {
-            // Log error for debugging
-            e.printStackTrace()
+            ApngLogger.e(ApngLogTags.FRAME, "[Desktop] Failed to build frame: ${e.message}", e)
         }
     }
     

@@ -2,6 +2,8 @@ package io.github.lugf027.apng.compose
 
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.ImageBitmap
+import io.github.lugf027.apng.logger.ApngLogTags
+import io.github.lugf027.apng.logger.ApngLogger
 
 /**
  * APNG frame data for compose rendering
@@ -41,6 +43,10 @@ class ApngComposition internal constructor(
      */
     val frameCount: Int = frames.size
     
+    init {
+        ApngLogger.d(ApngLogTags.COMPOSE) { "ApngComposition created: ${width}x${height}, $frameCount frames, duration=${durationMillis}ms, animated=$isAnimated" }
+    }
+    
     companion object {
         /**
          * Parse APNG data from byte array.
@@ -50,7 +56,17 @@ class ApngComposition internal constructor(
          * @return The parsed [ApngComposition]
          * @throws Exception if parsing fails
          */
-        fun parse(data: ByteArray): ApngComposition = parseApngCompositionData(data)
+        fun parse(data: ByteArray): ApngComposition {
+            ApngLogger.d(ApngLogTags.COMPOSE, "Parsing APNG composition from ${data.size} bytes")
+            return try {
+                val composition = parseApngCompositionData(data)
+                ApngLogger.i(ApngLogTags.COMPOSE) { "Successfully parsed ApngComposition: ${composition.width}x${composition.height}, ${composition.frameCount} frames" }
+                composition
+            } catch (e: Exception) {
+                ApngLogger.e(ApngLogTags.COMPOSE, "Failed to parse APNG composition", e)
+                throw e
+            }
+        }
     }
 }
 

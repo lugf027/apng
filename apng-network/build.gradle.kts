@@ -73,6 +73,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            api(project(":apng-logger"))
             implementation(project(":apng-network-core"))
             implementation(project(":apng-core"))
             implementation(project(":apng-compose"))

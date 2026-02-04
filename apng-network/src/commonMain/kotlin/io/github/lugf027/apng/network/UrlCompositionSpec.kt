@@ -2,6 +2,8 @@ package io.github.lugf027.apng.network
 
 import io.github.lugf027.apng.compose.ApngComposition
 import io.github.lugf027.apng.compose.ApngCompositionSpec
+import io.github.lugf027.apng.logger.ApngLogTags
+import io.github.lugf027.apng.logger.ApngLogger
 
 /**
  * Create an [ApngCompositionSpec] that loads from a network URL.
@@ -23,8 +25,10 @@ public fun ApngCompositionSpec.Companion.Url(
     url: String,
     cacheStrategy: ApngCacheStrategy = DefaultCacheStrategy,
 ): ApngCompositionSpec {
+    ApngLogger.d(ApngLogTags.NETWORK, "ApngCompositionSpec.Url: Creating spec for $url")
     // Make sure network is initialized
     if (DefaultHttpClient !is KtorHttpClient) {
+        ApngLogger.d(ApngLogTags.NETWORK, "ApngCompositionSpec.Url: Initializing network")
         initializeApngNetwork()
     }
     return Url(
@@ -77,9 +81,14 @@ private class NetworkCompositionSpec(
         get() = "url_$url"
 
     override suspend fun load(): ApngComposition {
+        ApngLogger.d(ApngLogTags.NETWORK) { "NetworkCompositionSpec: Loading from $url" }
         val bytes = networkLoad(request, cacheStrategy, url)
         
-        return checkNotNull(bytes?.let { ApngComposition.parse(it) }) {
+        return checkNotNull(bytes?.let { 
+            ApngLogger.v(ApngLogTags.NETWORK) { "NetworkCompositionSpec: Parsing ${it.size} bytes from $url" }
+            ApngComposition.parse(it) 
+        }) {
+            ApngLogger.e(ApngLogTags.NETWORK, "NetworkCompositionSpec: Failed to load APNG from $url")
             "Failed to load APNG from $url"
         }
     }

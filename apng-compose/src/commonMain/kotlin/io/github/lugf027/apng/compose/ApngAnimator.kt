@@ -8,6 +8,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import io.github.lugf027.apng.core.AnimationController
 import io.github.lugf027.apng.core.ApngImage
+import io.github.lugf027.apng.logger.ApngLogTags
+import io.github.lugf027.apng.logger.ApngLogger
 import kotlinx.coroutines.delay
 
 /**
@@ -44,11 +46,13 @@ fun rememberApngAnimator(
 
     LaunchedEffect(apngImage, autoPlay) {
         if (!apngImage.isAnimated) {
+            ApngLogger.d(ApngLogTags.ANIMATION, "rememberApngAnimator: Image is not animated, skipping animation")
             animationState = ApngAnimationState(frameIndex = 0)
             return@LaunchedEffect
         }
 
         if (autoPlay) {
+            ApngLogger.d(ApngLogTags.ANIMATION) { "rememberApngAnimator: Starting auto-play animation with ${apngImage.numFrames} frames" }
             controller.play()
             animationState = animationState.copy(isPlaying = true)
 
@@ -68,6 +72,7 @@ fun rememberApngAnimator(
                 callback?.onFrameChanged(animationState.frameIndex)
 
                 if (oldLoopCount != newLoopCount) {
+                    ApngLogger.v(ApngLogTags.ANIMATION) { "rememberApngAnimator: Loop completed, loop=$newLoopCount" }
                     callback?.onLoopComplete(newLoopCount)
                 }
             }

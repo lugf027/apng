@@ -14,6 +14,7 @@ kotlin {
             kotlin.srcDirs("src/jvmMain/kotlin")
             dependencies {
                 implementation(project(":example:shared"))
+                implementation(project(":apng-logger"))
                 implementation(compose.desktop.currentOs)
                 implementation(libs.kotlinx.coroutinesSwing)
             }

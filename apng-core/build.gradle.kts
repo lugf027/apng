@@ -74,6 +74,7 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
+            api(project(":apng-logger"))
             implementation(libs.okio)
             implementation(libs.kotlinx.serialization.core)
             implementation(libs.compose.foundation)

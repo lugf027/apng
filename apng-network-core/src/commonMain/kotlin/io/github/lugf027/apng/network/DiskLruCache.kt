@@ -1,5 +1,7 @@
 package io.github.lugf027.apng.network
 
+import io.github.lugf027.apng.logger.ApngLogTags
+import io.github.lugf027.apng.logger.ApngLogger
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import okio.ByteString.Companion.encodeUtf8
@@ -29,8 +31,9 @@ internal class DiskLruCache(
     init {
         try {
             fileSystem.createDirectories(directory, mustCreate = false)
-        } catch (_: Exception) {
-            // Directory creation may fail, but we'll handle errors during actual operations
+            ApngLogger.d(ApngLogTags.CACHE) { "DiskLruCache: Initialized with directory=$directory, maxSize=$maxSize bytes" }
+        } catch (e: Exception) {
+            ApngLogger.w(ApngLogTags.CACHE, "DiskLruCache: Failed to create cache directory: ${e.message}")
         }
     }
 
@@ -42,10 +45,13 @@ internal class DiskLruCache(
         try {
             val bytes = fileSystem.read(path) { readByteArray() }
             accessTimes[key] = ++accessCounter
+            ApngLogger.v(ApngLogTags.CACHE) { "DiskLruCache: Get hit for key=$key, size=${bytes.size}" }
             bytes
         } catch (e: FileNotFoundException) {
+            ApngLogger.v(ApngLogTags.CACHE) { "DiskLruCache: Get miss for key=$key (file not found)" }
             null
         } catch (e: Exception) {
+            ApngLogger.w(ApngLogTags.CACHE, "DiskLruCache: Get error for key=$key: ${e.message}")
             null
         }
     }
@@ -62,6 +68,7 @@ internal class DiskLruCache(
             val oldSize = fileSystem.metadata(path).size ?: 0L
             fileSystem.delete(path)
             currentSize -= oldSize
+            ApngLogger.v(ApngLogTags.CACHE) { "DiskLruCache: Removed old entry for key=$key, size=$oldSize" }
         } catch (_: FileNotFoundException) {
             // File doesn't exist, no need to remove
         } catch (_: Exception) {
@@ -72,6 +79,7 @@ internal class DiskLruCache(
         fileSystem.write(path) { write(bytes) }
         currentSize += size
         accessTimes[key] = ++accessCounter
+        ApngLogger.v(ApngLogTags.CACHE) { "DiskLruCache: Put key=$key, size=$size, currentSize=$currentSize" }
 
         // Evict oldest entries if cache exceeds limit
         evictIfNecessary()
@@ -96,6 +104,7 @@ internal class DiskLruCache(
      * Delete all cache entries.
      */
     suspend fun clear() = mutex.withLock {
+        ApngLogger.d(ApngLogTags.CACHE, "DiskLruCache: Clearing all cache entries")
         try {
             fileSystem.listRecursively(directory).forEach { path ->
                 try {
@@ -108,8 +117,9 @@ internal class DiskLruCache(
             }
             accessTimes.clear()
             currentSize = 0L
-        } catch (_: Exception) {
-            // Directory may not exist
+            ApngLogger.i(ApngLogTags.CACHE, "DiskLruCache: Cache cleared successfully")
+        } catch (e: Exception) {
+            ApngLogger.w(ApngLogTags.CACHE, "DiskLruCache: Clear error: ${e.message}")
         }
     }
 
@@ -126,11 +136,14 @@ internal class DiskLruCache(
     private fun evictIfNecessary() {
         if (currentSize <= maxSize) return
 
+        ApngLogger.d(ApngLogTags.CACHE) { "DiskLruCache: Evicting entries, currentSize=$currentSize, maxSize=$maxSize" }
+        
         // Sort by access time and remove oldest entries
         val sortedKeys = accessTimes.entries
             .sortedBy { it.value }
             .map { it.key }
 
+        var evictedCount = 0
         for (key in sortedKeys) {
             if (currentSize <= maxSize * 0.9) break // Leave 10% buffer
 
@@ -140,12 +153,17 @@ internal class DiskLruCache(
                 fileSystem.delete(path)
                 currentSize -= size
                 accessTimes.remove(key)
+                evictedCount++
             } catch (_: FileNotFoundException) {
                 // Already deleted
                 accessTimes.remove(key)
             } catch (_: Exception) {
                 // Ignore errors
             }
+        }
+        
+        if (evictedCount > 0) {
+            ApngLogger.d(ApngLogTags.CACHE) { "DiskLruCache: Evicted $evictedCount entries, currentSize=$currentSize" }
         }
     }
 }

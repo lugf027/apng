@@ -1,5 +1,7 @@
 package io.github.lugf027.apng.core
 
+import io.github.lugf027.apng.logger.ApngLogTags
+import io.github.lugf027.apng.logger.ApngLogger
 import okio.Buffer
 import okio.BufferedSource
 import okio.ByteString.Companion.toByteString
@@ -10,6 +12,7 @@ import okio.ByteString.Companion.toByteString
  */
 class ApngParser {
     fun parse(source: BufferedSource): ApngImage {
+        ApngLogger.d(ApngLogTags.PARSER, "Starting to parse APNG from BufferedSource")
         val buffer = Buffer()
         buffer.writeAll(source)
         
@@ -17,9 +20,13 @@ class ApngParser {
     }
 
     fun parse(data: ByteArray): ApngImage {
+        ApngLogger.d(ApngLogTags.PARSER, "Starting to parse APNG data, size: ${data.size} bytes")
+        
         if (!PngSignature.isValid(data)) {
+            ApngLogger.e(ApngLogTags.PARSER, "Invalid PNG signature")
             throw InvalidPngSignatureException()
         }
+        ApngLogger.v(ApngLogTags.PARSER, "PNG signature validated")
 
         var offset = PngSignature.SIZE
         var ihdr: IhdrChunk? = null
@@ -45,6 +52,7 @@ class ApngParser {
 
             // 检查数据是否完整
             if (offset + length + 4 > data.size) {
+                ApngLogger.e(ApngLogTags.PARSER, "Incomplete chunk data for type: $type")
                 throw InvalidChunkException("Incomplete chunk data")
             }
 
@@ -58,41 +66,50 @@ class ApngParser {
                 when (type) {
                     Chunk.IHDR -> {
                         ihdr = IhdrChunk.parse(chunkData)
+                        ApngLogger.v(ApngLogTags.CHUNK) { "Parsed IHDR: ${ihdr.width}x${ihdr.height}, bitDepth=${ihdr.bitDepth}, colorType=${ihdr.colorType}" }
                     }
                     Chunk.acTL -> {
                         actl = ActlChunk.parse(chunkData)
+                        ApngLogger.v(ApngLogTags.CHUNK) { "Parsed acTL: numFrames=${actl.numFrames}, numPlays=${actl.numPlays}" }
                     }
                     Chunk.fcTL -> {
                         val fctl = FctlChunk.parse(chunkData)
                         seqNumber = fctl.sequenceNumber
+                        ApngLogger.v(ApngLogTags.CHUNK) { "Parsed fcTL: seq=$seqNumber, ${fctl.width}x${fctl.height}, delay=${fctl.delayNum}/${fctl.delayDen}" }
                     }
                     Chunk.IDAT -> {
                         idatChunks.add(chunkData)
+                        ApngLogger.v(ApngLogTags.CHUNK) { "Parsed IDAT chunk, size: ${chunkData.size} bytes" }
                     }
                     Chunk.fdAT -> {
                         if (chunkData.size < 4) {
+                            ApngLogger.e(ApngLogTags.PARSER, "fdAT chunk too short: ${chunkData.size} bytes")
                             throw InvalidChunkException("fdAT chunk too short")
                         }
                         val dataSeqNum = bytesToInt(chunkData, 0)
                         val frameData = chunkData.sliceArray(4 until chunkData.size)
                         fdatChunks.add(dataSeqNum to frameData)
+                        ApngLogger.v(ApngLogTags.CHUNK) { "Parsed fdAT chunk, seq=$dataSeqNum, size: ${frameData.size} bytes" }
                     }
                     Chunk.IEND -> {
-                        // End of file
+                        ApngLogger.v(ApngLogTags.CHUNK, "Reached IEND chunk")
                         break
                     }
                 }
             } catch (e: Exception) {
+                ApngLogger.e(ApngLogTags.PARSER, "Failed to parse chunk $type: ${e.message}", e)
                 throw InvalidApngException("Failed to parse chunk $type: ${e.message}")
             }
         }
 
         if (ihdr == null) {
+            ApngLogger.e(ApngLogTags.PARSER, "Missing IHDR chunk")
             throw InvalidApngException("Missing IHDR chunk")
         }
 
         val isAnimated = actl != null
         val numFrames = actl?.numFrames ?: 1
+        ApngLogger.d(ApngLogTags.PARSER) { "Image info: ${ihdr.width}x${ihdr.height}, animated=$isAnimated, numFrames=$numFrames" }
 
         // 如果有 IDAT，构建默认图像
         if (idatChunks.isNotEmpty()) {
@@ -101,6 +118,7 @@ class ApngParser {
                 buffer.addAll(chunk.toList())
             }
             defaultImageData = buffer.toByteArray()
+            ApngLogger.v(ApngLogTags.PARSER) { "Built default image data: ${defaultImageData.size} bytes from ${idatChunks.size} IDAT chunks" }
         }
 
         // 解析帧数据（简化版本，实际需要处理 fdAT 序列）
@@ -133,6 +151,7 @@ class ApngParser {
                                 offsetY = fctl.offsetY
                             )
                         )
+                        ApngLogger.v(ApngLogTags.FRAME) { "Built frame $frameIndex: ${fctl.width}x${fctl.height}" }
                     }
                     currentFrameData.clear()
                     currentSeqNum = seqNum
@@ -159,8 +178,11 @@ class ApngParser {
                         offsetY = fctl.offsetY
                     )
                 )
+                ApngLogger.v(ApngLogTags.FRAME) { "Built final frame $frameIndex: ${fctl.width}x${fctl.height}" }
             }
         }
+
+        ApngLogger.i(ApngLogTags.PARSER) { "APNG parsing completed: ${ihdr.width}x${ihdr.height}, ${frameList.size} frames" }
 
         return ApngImage(
             width = ihdr.width,

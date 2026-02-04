@@ -65,6 +65,7 @@ kotlin {
             implementation(project(":apng-compose"))
             implementation(project(":apng-network"))
             implementation(project(":apng-resources"))
+            implementation(project(":apng-logger"))
 
             implementation(compose.runtime)
             implementation(compose.foundation)

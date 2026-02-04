@@ -4,6 +4,8 @@ import androidx.compose.runtime.Composable
 import io.github.lugf027.apng.compose.ApngCompositionResult
 import io.github.lugf027.apng.compose.ApngCompositionSpec
 import io.github.lugf027.apng.compose.rememberApngComposition
+import io.github.lugf027.apng.logger.ApngLogTags
+import io.github.lugf027.apng.logger.ApngLogger
 
 /**
  * Remember and load an APNG composition from a URL.
@@ -38,6 +40,7 @@ fun rememberApngCompositionFromUrl(
     url: String,
     cacheStrategy: ApngCacheStrategy = DefaultCacheStrategy
 ): ApngCompositionResult {
+    ApngLogger.d(ApngLogTags.COMPOSE) { "rememberApngCompositionFromUrl: Loading from $url" }
     return rememberApngComposition {
         ApngCompositionSpec.Url(url, cacheStrategy)
     }
@@ -57,6 +60,7 @@ fun rememberApngCompositionFromUrl(
     request: suspend (url: String) -> ByteArray,
     cacheStrategy: ApngCacheStrategy = DefaultCacheStrategy
 ): ApngCompositionResult {
+    ApngLogger.d(ApngLogTags.COMPOSE) { "rememberApngCompositionFromUrl: Loading from $url with custom request" }
     return rememberApngComposition {
         ApngCompositionSpec.Url(url, request, cacheStrategy)
     }

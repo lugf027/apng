@@ -31,10 +31,10 @@ kotlin {
     jvmToolchain(21)
 
     androidLibrary {
-        namespace = "io.github.lugf027"
+        namespace = "io.github.lugf027.apng.logger"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
 
-        withJava() // enable java compilation support
+        withJava()
         withHostTestBuilder {}.configure {}
         withDeviceTestBuilder {
             sourceSetTreeName = "test"
@@ -55,7 +55,7 @@ kotlin {
         iosSimulatorArm64()
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
-            baseName = "ApngNetworkCore"
+            baseName = "ApngLogger"
             isStatic = true
         }
     }
@@ -71,26 +71,12 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            api(project(":apng-logger"))
-            implementation(project(":apng-core"))
-            implementation(libs.okio)
-            implementation(libs.kotlinx.coroutines)
+            // No dependencies needed for logger module
         }
 
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
-
-        androidMain.dependencies {
-            implementation(libs.androidx.core.ktx)
-        }
-
-        val desktopMain by getting {
-            // Desktop uses Okio for file operations
-        }
-
-        // Web platform uses custom InMemoryFileSystem instead of FakeFileSystem
-        // to avoid kotlinx-datetime dependency issues in WASM
     }
 }
 
@@ -104,13 +90,13 @@ mavenPublishing {
 
     coordinates(
         groupId = "io.github.lugf027",
-        artifactId = "apng-network-core",
+        artifactId = "apng-logger",
         version = rootProject.property("VERSION").toString(),
     )
 
     pom {
-        name.set("Kotlin Multiplatform APNG Network Core")
-        description.set("Network loading infrastructure and abstractions for APNG")
+        name.set("Kotlin Multiplatform APNG Logger")
+        description.set("Logging infrastructure for APNG library with dependency injection support")
         inceptionYear.set("2026")
         url.set("https://github.com/lugf027/apng")
 
