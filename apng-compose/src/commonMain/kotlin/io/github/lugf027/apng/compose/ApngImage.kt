@@ -13,9 +13,9 @@ import androidx.compose.ui.unit.dp
 
 /**
  * APNG image display component.
- * 
+ *
  * Uses Compose Painter for rendering, inspired by compottie's design.
- * 
+ *
  * @param data APNG image data as bytes
  * @param contentDescription Content description for accessibility
  * @param modifier Modifier
@@ -37,9 +37,9 @@ fun ApngImage(
     onError: ((Throwable) -> Unit)? = null
 ) {
     val compositionResult = rememberApngComposition(data)
-    
-    when (compositionResult) {
-        is ApngCompositionResult.Loading -> {
+
+    when {
+        compositionResult.isLoading -> {
             Box(
                 modifier = modifier,
                 contentAlignment = Alignment.Center
@@ -49,23 +49,23 @@ fun ApngImage(
                 )
             }
         }
-        is ApngCompositionResult.Error -> {
-            onError?.invoke(compositionResult.throwable)
+        compositionResult.isFailure -> {
+            compositionResult.error?.let { onError?.invoke(it) }
             Box(
                 modifier = modifier,
                 contentAlignment = Alignment.Center
             ) {
-                Text("Error: ${compositionResult.throwable.message}")
+                Text("Error: ${compositionResult.error?.message}")
             }
         }
-        is ApngCompositionResult.Success -> {
+        compositionResult.isSuccess -> {
             val painter = rememberApngPainter(
-                composition = compositionResult.composition,
+                composition = compositionResult.value,
                 autoPlay = autoPlay,
                 speed = speed,
                 iterations = iterations
             )
-            
+
             Image(
                 painter = painter,
                 contentDescription = contentDescription,
@@ -78,9 +78,9 @@ fun ApngImage(
 
 /**
  * APNG image display component - using a spec.
- * 
+ *
  * This is the recommended API for loading APNG from various sources.
- * 
+ *
  * Example:
  * ```kotlin
  * ApngImage(
@@ -88,7 +88,7 @@ fun ApngImage(
  *     contentDescription = "Animation"
  * )
  * ```
- * 
+ *
  * @param spec Lambda that returns the composition spec
  * @param contentDescription Content description for accessibility
  * @param modifier Modifier
@@ -100,7 +100,7 @@ fun ApngImage(
  */
 @Composable
 fun ApngImage(
-    spec: () -> ApngCompositionSpec,
+    spec: suspend () -> ApngCompositionSpec,
     contentDescription: String?,
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Fit,
@@ -109,10 +109,10 @@ fun ApngImage(
     iterations: Int = 0,
     onError: ((Throwable) -> Unit)? = null
 ) {
-    val compositionResult = rememberApngComposition(spec)
-    
-    when (compositionResult) {
-        is ApngCompositionResult.Loading -> {
+    val compositionResult = rememberApngComposition(spec = spec)
+
+    when {
+        compositionResult.isLoading -> {
             Box(
                 modifier = modifier,
                 contentAlignment = Alignment.Center
@@ -122,23 +122,23 @@ fun ApngImage(
                 )
             }
         }
-        is ApngCompositionResult.Error -> {
-            onError?.invoke(compositionResult.throwable)
+        compositionResult.isFailure -> {
+            compositionResult.error?.let { onError?.invoke(it) }
             Box(
                 modifier = modifier,
                 contentAlignment = Alignment.Center
             ) {
-                Text("Error: ${compositionResult.throwable.message}")
+                Text("Error: ${compositionResult.error?.message}")
             }
         }
-        is ApngCompositionResult.Success -> {
+        compositionResult.isSuccess -> {
             val painter = rememberApngPainter(
-                composition = compositionResult.composition,
+                composition = compositionResult.value,
                 autoPlay = autoPlay,
                 speed = speed,
                 iterations = iterations
             )
-            
+
             Image(
                 painter = painter,
                 contentDescription = contentDescription,
@@ -151,7 +151,7 @@ fun ApngImage(
 
 /**
  * APNG image display component - using pre-loaded composition data.
- * 
+ *
  * @param composition APNG composition data
  * @param contentDescription Content description for accessibility
  * @param modifier Modifier
@@ -176,7 +176,7 @@ fun ApngImage(
         speed = speed,
         iterations = iterations
     )
-    
+
     Image(
         painter = painter,
         contentDescription = contentDescription,
@@ -187,7 +187,7 @@ fun ApngImage(
 
 /**
  * APNG image display component - using custom progress control.
- * 
+ *
  * @param composition APNG composition data
  * @param progress Current playback progress lambda (0.0-1.0)
  * @param contentDescription Content description for accessibility
@@ -206,7 +206,7 @@ fun ApngImage(
         composition = composition,
         progress = progress
     )
-    
+
     Image(
         painter = painter,
         contentDescription = contentDescription,

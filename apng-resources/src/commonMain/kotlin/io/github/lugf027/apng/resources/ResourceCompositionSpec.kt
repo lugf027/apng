@@ -6,38 +6,14 @@ import io.github.lugf027.apng.compose.ApngComposition
 import io.github.lugf027.apng.compose.ApngCompositionSpec
 
 /**
- * Create an [ApngCompositionSpec] that loads from Compose Resources.
- * 
- * Assets must be stored in the composeResources/files/ directory.
- * 
- * Example:
- * ```kotlin
- * val composition by rememberApngComposition {
- *     ApngCompositionSpec.Resource(
- *         resourcePath = "animation.apng",
- *         readBytes = Res::readBytes
- *     )
- * }
- * ```
- * 
- * @param resourcePath The resource path relative to files directory
- * @param readBytes The function to read bytes from resources (typically Res::readBytes)
- * @param directory The directory in composeResources (default: "files")
- * @return An [ApngCompositionSpec] that loads from resources
- */
-@Stable
-public fun ApngCompositionSpec.Companion.Resource(
-    resourcePath: String,
-    readBytes: suspend (path: String) -> ByteArray,
-    directory: String = "files"
-): ApngCompositionSpec = ResourceCompositionSpec(
-    resourcePath = resourcePath,
-    readBytes = readBytes,
-    directory = directory
-)
-
-/**
- * Internal implementation of Resource-based ApngCompositionSpec.
+ * Internal implementation of Resource-based [ApngCompositionSpec].
+ *
+ * Handles loading APNG data from Compose Multiplatform Resources using the provided
+ * [readBytes] function (typically `Res::readBytes`).
+ *
+ * @property resourcePath The resource path relative to [directory]
+ * @property readBytes The suspend function to read bytes from resources
+ * @property directory The directory prefix in composeResources
  */
 @Immutable
 internal class ResourceCompositionSpec(
@@ -54,13 +30,13 @@ internal class ResourceCompositionSpec(
         val bytes = readBytes(fullPath)
         return ApngComposition.parse(bytes)
     }
-    
+
     private fun buildFullPath(): String {
         val trimPath = resourcePath
             .removePrefix("/")
             .removeSuffix("/")
             .takeIf(String::isNotEmpty)
-        
+
         return listOfNotNull(
             directory.takeIf(String::isNotEmpty),
             trimPath
@@ -86,8 +62,52 @@ internal class ResourceCompositionSpec(
         result = 31 * result + directory.hashCode()
         return result
     }
-    
+
     override fun toString(): String {
-        return "Resource(path='$resourcePath', directory='$directory', key=$key)"
+        return "ResourceCompositionSpec(path='$resourcePath', directory='$directory', key='$key')"
     }
 }
+
+/**
+ * Create an [ApngCompositionSpec] that loads APNG from Compose Resources.
+ *
+ * Assets must be stored in the composeResources/[directory] directory.
+ * Use `Res::readBytes` as the [readBytes] source.
+ *
+ * @param resourcePath The resource path relative to [directory]
+ * @param readBytes The function to read bytes from resources (typically `Res::readBytes`)
+ * @param directory The directory in composeResources (default: "files")
+ * @return An [ApngCompositionSpec] that loads from Compose Resources
+ */
+@Stable
+public fun ApngCompositionSpec.Companion.Resource(
+    resourcePath: String,
+    readBytes: suspend (path: String) -> ByteArray,
+    directory: String = "files"
+): ApngCompositionSpec = ResourceCompositionSpec(
+    resourcePath = resourcePath,
+    readBytes = readBytes,
+    directory = directory
+)
+
+/**
+ * Create an [ApngCompositionSpec] from Compose Resources byte reader.
+ *
+ * Alternative API that provides more flexibility in path handling.
+ * Use `Res::readBytes` as the [readBytes] source.
+ *
+ * @param path The resource path (full or relative)
+ * @param directory The directory prefix (default: "files"). Empty if path is already full.
+ * @param readBytes The function to read bytes from resources (typically `Res::readBytes`)
+ * @return An [ApngCompositionSpec] that loads from Compose Resources
+ */
+@Stable
+public fun ApngCompositionSpec.Companion.ResourceBytes(
+    path: String,
+    directory: String = "files",
+    readBytes: suspend (path: String) -> ByteArray,
+): ApngCompositionSpec = ResourceCompositionSpec(
+    resourcePath = path,
+    readBytes = readBytes,
+    directory = directory
+)
