@@ -30,11 +30,19 @@ kotlin {
         }
     }
 
-    androidTarget {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
+    jvmToolchain(21)
+
+    androidLibrary {
+        namespace = "io.github.lugf027"
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+
+        withJava() // enable java compilation support
+        withHostTestBuilder {}.configure {}
+        withDeviceTestBuilder {
+            sourceSetTreeName = "test"
         }
-        publishLibraryVariants("release")
+
+        compilerOptions {}
     }
 
     jvm("desktop") {
@@ -100,20 +108,6 @@ kotlin {
         val webMain by getting {
             dependsOn(commonMain.get())
         }
-    }
-}
-
-android {
-    namespace = "io.github.lugf027.apng.compose"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-
-    defaultConfig {
-        minSdk = libs.versions.android.minSdk.get().toInt()
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
     }
 }
 

@@ -2,29 +2,23 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.androidApplication)
-    alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
 }
 
 kotlin {
-    androidTarget {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
-        }
-    }
+    jvmToolchain(21)
+}
 
-    sourceSets {
-        androidMain.dependencies {
-            implementation(project(":example:shared"))
-            implementation(libs.androidx.core.ktx)
-            implementation(libs.androidx.activity.compose)
-            implementation(compose.uiTooling)
-            implementation(compose.preview)
-            implementation(compose.foundation)
-            implementation(compose.components.resources)
-        }
-    }
+dependencies {
+    implementation(project(":example:shared"))
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.activity.compose)
+//    implementation(compose.uiTooling)
+//    implementation(compose.preview)
+//    implementation(compose.foundation)
+//    implementation(compose.components.resources)
 }
 
 android {

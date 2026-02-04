@@ -28,11 +28,19 @@ kotlin {
         }
     }
 
-    androidTarget {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
+    jvmToolchain(21)
+
+    androidLibrary {
+        namespace = "io.github.lugf027"
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+
+        withJava() // enable java compilation support
+        withHostTestBuilder {}.configure {}
+        withDeviceTestBuilder {
+            sourceSetTreeName = "test"
         }
-        publishLibraryVariants("release")
+
+        compilerOptions {}
     }
 
     jvm("desktop") {
@@ -93,20 +101,6 @@ kotlin {
             // Web platform uses custom InMemoryFileSystem instead of FakeFileSystem
             // to avoid kotlinx-datetime dependency issues in WASM
         }
-    }
-}
-
-android {
-    namespace = "io.github.lugf027.apng.network"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-
-    defaultConfig {
-        minSdk = libs.versions.android.minSdk.get().toInt()
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
     }
 }
 

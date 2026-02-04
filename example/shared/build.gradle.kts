@@ -24,12 +24,20 @@ kotlin {
         }
     }
 
-    androidTarget {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
-        }
-    }
+    jvmToolchain(21)
 
+    androidLibrary {
+        namespace = "io.github.lugf027"
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+
+        withJava() // enable java compilation support
+        withHostTestBuilder {}.configure {}
+        withDeviceTestBuilder {
+            sourceSetTreeName = "test"
+        }
+
+        compilerOptions {}
+    }
     listOf(
         iosX64(),
         iosArm64(),
@@ -82,20 +90,3 @@ kotlin {
     }
 }
 
-android {
-    namespace = "io.github.lugf027.apng.example.shared"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-
-    defaultConfig {
-        minSdk = libs.versions.android.minSdk.get().toInt()
-    }
-
-    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
-    sourceSets["main"].res.srcDirs("src/androidMain/res")
-    sourceSets["main"].resources.srcDirs("src/commonMain/resources")
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-}
