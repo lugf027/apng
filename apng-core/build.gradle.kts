@@ -88,22 +88,13 @@ kotlin {
             implementation(libs.androidx.core.ktx)
         }
 
-        val skikoMain by getting {
-            dependsOn(commonMain.get())
-        }
-
         val desktopMain by getting {
             dependencies {
                 implementation(libs.skiko)
             }
         }
 
-        val iosMain by getting {
-            dependsOn(skikoMain)
-        }
-
         val webMain by getting {
-            dependsOn(commonMain.get())
             dependencies {
                 implementation(libs.skiko)
             }

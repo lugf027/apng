@@ -84,23 +84,12 @@ kotlin {
             implementation(libs.androidx.core.ktx)
         }
 
-        val skikoMain by getting {
-            dependsOn(commonMain.get())
-        }
-
         val desktopMain by getting {
             // Desktop uses Okio for file operations
         }
 
-        val iosMain by getting {
-            dependsOn(skikoMain)
-        }
-
-        val webMain by getting {
-            dependsOn(commonMain.get())
-            // Web platform uses custom InMemoryFileSystem instead of FakeFileSystem
-            // to avoid kotlinx-datetime dependency issues in WASM
-        }
+        // Web platform uses custom InMemoryFileSystem instead of FakeFileSystem
+        // to avoid kotlinx-datetime dependency issues in WASM
     }
 }
 

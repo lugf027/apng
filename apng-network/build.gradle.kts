@@ -92,10 +92,6 @@ kotlin {
             implementation(libs.ktor.client.okhttp)
         }
 
-        val skikoMain by getting {
-            dependsOn(commonMain.get())
-        }
-
         val desktopMain by getting {
             dependencies {
                 implementation(libs.ktor.client.okhttp)
@@ -103,14 +99,12 @@ kotlin {
         }
 
         val iosMain by getting {
-            dependsOn(skikoMain)
             dependencies {
                 implementation(libs.ktor.client.darwin)
             }
         }
 
         val webMain by getting {
-            dependsOn(commonMain.get())
             dependencies {
                 implementation(libs.ktor.client.js)
             }
