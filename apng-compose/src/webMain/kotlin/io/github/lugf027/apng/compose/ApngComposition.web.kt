@@ -27,8 +27,7 @@ internal actual fun parseApngCompositionData(data: ByteArray): ApngComposition {
     if (!parseResult.hasActl || parseResult.frameInfoList.isEmpty()) {
         // 不是 APNG，作为静态图像处理
         val image = Image.makeFromEncoded(data)
-            ?: throw IllegalArgumentException("Failed to decode PNG")
-        
+
         val bitmap = image.toComposeImageBitmap()
         image.close()
         
@@ -162,7 +161,7 @@ private fun buildFrames(
     // 完整实现需要根据每帧的偏移量和大小提取单独的帧数据
     
     return frameInfoList.mapIndexed { index, frameInfo ->
-        val image = Image.makeFromEncoded(fullData) ?: return emptyList()
+        val image = Image.makeFromEncoded(fullData)
         val bitmap = image.toComposeImageBitmap()
         image.close()
         
