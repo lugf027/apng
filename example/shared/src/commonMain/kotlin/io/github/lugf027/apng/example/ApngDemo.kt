@@ -27,6 +27,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -44,13 +45,9 @@ import io.github.lugf027.apng.compose.ApngCompositionResult
 import io.github.lugf027.apng.compose.ApngCompositionSpec
 import io.github.lugf027.apng.compose.rememberApngComposition
 import io.github.lugf027.apng.compose.rememberApngPainter
-import io.github.lugf027.apng.logger.ApngLogger
 import io.github.lugf027.apng.network.rememberApngCompositionFromUrl
 import io.github.lugf027.apng.resources.Resource
-import io.github.lugf027.apng.resources.ResourceBytes
 import org.jetbrains.compose.resources.ExperimentalResourceApi
-
-private val TAG = "ApngDemo"
 
 /**
  * APNG 资源项数据类
@@ -384,49 +381,6 @@ private fun InfoTab() {
         }
 
         Text(
-            "Resource Loading APIs",
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(vertical = 12.dp)
-        )
-
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 12.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            )
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(
-                    "Compose Resources (Res::readBytes)",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                listOf(
-                    "📦 ApngCompositionSpec.Resource()",
-                    "📦 ApngCompositionSpec.ResourceBytes()",
-                    "🔧 rememberApngCompositionFromResource()",
-                    "🔧 rememberApngCompositionFromResourceBytes()",
-                    "🖼️ ApngImageFromResource()",
-                    "🖼️ ApngImageFromResourceBytes()"
-                ).forEach { api ->
-                    Text(
-                        api,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(vertical = 2.dp)
-                    )
-                }
-            }
-        }
-
-        Text(
             "Features",
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.primary,
@@ -487,24 +441,12 @@ private fun InfoRow(label: String, value: String) {
     }
 }
 
-/**
- * APNG Card displaying animation from Compose Resources.
- *
- * Demonstrates two ways to load APNG from resources:
- * 1. Using [ApngCompositionSpec.Resource] - the original API with resourcePath parameter
- * 2. Using [ApngCompositionSpec.ResourceBytes] - alternative API with full path support
- *
- * Both APIs use `Res::readBytes` from Compose Multiplatform Resources.
- */
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 private fun ApngCard(resource: ApngResource) {
-    // Example using ResourceBytes API (alternative approach)
-    // This API provides more flexibility with path handling
     val compositionResult = rememberApngComposition {
-        ApngCompositionSpec.ResourceBytes(
-            path = resource.fileName,
-            directory = "files",
+        ApngCompositionSpec.Resource(
+            resourcePath = resource.fileName,
             readBytes = Res::readBytes
         )
     }
@@ -639,18 +581,17 @@ private fun ApngCompositionContent(
     compositionResult: ApngCompositionResult,
     contentDescription: String
 ) {
-    when {
-        compositionResult.isLoading -> {
+    when (compositionResult) {
+        is ApngCompositionResult.Loading -> {
             CircularProgressIndicator(
                 modifier = Modifier.size(32.dp),
                 color = MaterialTheme.colorScheme.primary
             )
         }
 
-        compositionResult.isFailure -> {
-            ApngLogger.e(TAG, "ApngCompositionContent error:", compositionResult.error)
+        is ApngCompositionResult.Error -> {
             Text(
-                text = "⚠️ ${compositionResult.error?.message?.take(30) ?: "Load failed"}",
+                text = "⚠️ ${compositionResult.throwable.message?.take(30) ?: "Load failed"}",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.error,
                 textAlign = TextAlign.Center,
@@ -658,9 +599,9 @@ private fun ApngCompositionContent(
             )
         }
 
-        compositionResult.isSuccess -> {
+        is ApngCompositionResult.Success -> {
             val painter = rememberApngPainter(
-                composition = compositionResult.value,
+                composition = compositionResult.composition,
                 autoPlay = true
             )
             androidx.compose.foundation.Image(

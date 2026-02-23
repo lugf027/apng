@@ -19,18 +19,18 @@ import io.github.lugf027.apng.logger.ApngLogger
  *     val result = rememberApngCompositionFromUrl(
  *         url = "https://example.com/animation.apng"
  *     )
- *
- *     when {
- *         result.isLoading -> CircularProgressIndicator()
- *         result.isSuccess -> {
- *             val painter = rememberApngPainter(result.value)
+ *     
+ *     when (result) {
+ *         is ApngCompositionResult.Loading -> CircularProgressIndicator()
+ *         is ApngCompositionResult.Success -> {
+ *             val painter = rememberApngPainter(result.composition)
  *             Image(painter = painter, contentDescription = null)
  *         }
- *         result.isFailure -> Text("Failed to load: ${result.error?.message}")
+ *         is ApngCompositionResult.Error -> Text("Failed to load: ${result.throwable.message}")
  *     }
  * }
  * ```
- *
+ * 
  * @param url The URL to load from
  * @param cacheStrategy The cache strategy to use
  * @return The loading result
