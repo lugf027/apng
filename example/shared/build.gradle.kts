@@ -1,93 +1,102 @@
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.composeMultiplatform)
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.compose)
     alias(libs.plugins.composeCompiler)
 }
 
-@OptIn(ExperimentalKotlinGradlePluginApi::class)
 kotlin {
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
     applyDefaultHierarchyTemplate {
         common {
             group("jvmNative") {
                 withAndroidTarget()
                 withJvm()
                 withIos()
+                withMacos()
             }
-            group("web") {
+            group("java") {
+                withJvm()
+                withAndroidTarget()
+            }
+            group("skiko") {
+                withJvm()
+                withIos()
+                withMacos()
                 withJs()
                 withWasmJs()
             }
+            group("desktopNative") {
+                withJvm()
+                withIos()
+                withMacos()
+            }
         }
     }
 
-    jvmToolchain(21)
-
-    androidLibrary {
-        namespace = "io.github.lugf027"
-        compileSdk = libs.versions.android.compileSdk.get().toInt()
-
-        withJava() // enable java compilation support
-        withHostTestBuilder {}.configure {}
-        withDeviceTestBuilder {
-            sourceSetTreeName = "test"
-        }
-
-        compilerOptions {}
-    }
+    jvm("desktop")
+    androidTarget()
     listOf(
-        iosX64(),
         iosArm64(),
-        iosSimulatorArm64()
+        iosSimulatorArm64(),
+        iosX64(),
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
             baseName = "shared"
             isStatic = true
         }
     }
-
-    jvm()
-
-    js(IR) {
-        browser()
-    }
-
-    wasmJs {
-        browser()
-    }
+    macosArm64()
+    macosX64()
+    js(IR) { browser() }
+    wasmJs { browser() }
 
     sourceSets {
         commonMain.dependencies {
             implementation(project(":apng-core"))
-            implementation(project(":apng-compose"))
             implementation(project(":apng-network"))
             implementation(project(":apng-resources"))
-            implementation(project(":apng-logger"))
-
-            implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material3)
-            implementation(compose.ui)
             implementation(compose.components.resources)
-            implementation(libs.androidx.lifecycle.viewmodelCompose)
-            implementation(libs.androidx.lifecycle.runtimeCompose)
+            implementation(libs.coroutines.core)
         }
-
-        commonTest.dependencies {
-            implementation(libs.kotlin.test)
+        val androidMain by getting {
+            dependencies {
+                implementation(libs.ktor.client.okhttp)
+            }
         }
-
-        androidMain.dependencies {
-            implementation(libs.compose.uiToolingPreview)
+        val desktopMain by getting {
+            dependencies {
+                implementation(libs.ktor.client.okhttp)
+            }
         }
-
-        jvmMain.dependencies {
-            implementation(compose.desktop.currentOs)
-            implementation(libs.kotlinx.coroutinesSwing)
+        val iosMain by getting {
+            dependencies {
+                implementation(libs.ktor.client.ios)
+            }
+        }
+        val jsMain by getting {
+            dependencies {
+                implementation(libs.ktor.client.js)
+            }
+        }
+        val wasmJsMain by getting {
+            dependencies {
+                implementation(libs.ktor.client.js)
+            }
         }
     }
 }
 
+android {
+    namespace = "io.github.lugf027.apng.example.shared"
+    compileSdk = (findProperty("android.compileSdk") as String).toInt()
+    defaultConfig {
+        minSdk = (findProperty("android.minSdk") as String).toInt()
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+}

@@ -1,139 +1,16 @@
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.mavenPublish)
+    alias(libs.plugins.compose)
+    alias(libs.plugins.composeCompiler)
 }
 
 kotlin {
-    @OptIn(ExperimentalKotlinGradlePluginApi::class)
-    applyDefaultHierarchyTemplate {
-        common {
-            group("jvmNative") {
-                withAndroidTarget()
-                withJvm()
-                withIos()
-            }
-            group("skiko") {
-                withJvm()
-                withIos()
-            }
-            group("web") {
-                withJs()
-                withWasmJs()
-            }
-        }
-    }
-
-    jvmToolchain(21)
-
-    androidLibrary {
-        namespace = "io.github.lugf027"
-        compileSdk = libs.versions.android.compileSdk.get().toInt()
-
-        withJava() // enable java compilation support
-        withHostTestBuilder {}.configure {}
-        withDeviceTestBuilder {
-            sourceSetTreeName = "test"
-        }
-
-        compilerOptions {}
-    }
-
-    jvm("desktop") {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
-        }
-    }
-
-    listOf(
-        iosArm64(),
-        iosX64(),
-        iosSimulatorArm64()
-    ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
-            baseName = "ApngNetworkCore"
-            isStatic = true
-        }
-    }
-
-    js(IR) {
-        browser()
-    }
-
-    @OptIn(ExperimentalWasmDsl::class)
-    wasmJs {
-        browser()
-    }
-
     sourceSets {
         commonMain.dependencies {
-            api(project(":apng-logger"))
-            implementation(project(":apng-core"))
-            implementation(libs.okio)
-            implementation(libs.kotlinx.coroutines)
-        }
-
-        commonTest.dependencies {
-            implementation(libs.kotlin.test)
-        }
-
-        androidMain.dependencies {
-            implementation(libs.androidx.core.ktx)
-        }
-
-        val desktopMain by getting {
-            // Desktop uses Okio for file operations
-        }
-
-        // Web platform uses custom InMemoryFileSystem instead of FakeFileSystem
-        // to avoid kotlinx-datetime dependency issues in WASM
-    }
-}
-
-@Suppress("UNUSED_VARIABLE")
-val kotlinMppExtension: org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension? = null
-
-mavenPublishing {
-    publishToMavenCentral(true)
-
-    signAllPublications()
-
-    coordinates(
-        groupId = "io.github.lugf027",
-        artifactId = "apng-network-core",
-        version = rootProject.property("VERSION").toString(),
-    )
-
-    pom {
-        name.set("Kotlin Multiplatform APNG Network Core")
-        description.set("Network loading infrastructure and abstractions for APNG")
-        inceptionYear.set("2026")
-        url.set("https://github.com/lugf027/apng")
-
-        licenses {
-            license {
-                name.set("MIT")
-                url.set("https://opensource.org/licenses/MIT")
-                distribution.set("repo")
-            }
-        }
-
-        developers {
-            developer {
-                id.set("lugf027")
-                name.set("lugf027")
-                url.set("https://github.com/lugf027")
-            }
-        }
-
-        scm {
-            url.set("https://github.com/lugf027/apng")
-            connection.set("scm:git:https://github.com/lugf027/apng.git")
-            developerConnection.set("scm:git:https://github.com/lugf027/apng.git")
+            api(project(":apng-core"))
+            implementation(compose.runtime)
+            implementation(libs.atomicfu)
+            api(libs.okio)
+            implementation(libs.coroutines.core)
         }
     }
 }

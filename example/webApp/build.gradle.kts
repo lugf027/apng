@@ -1,54 +1,32 @@
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
-
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.composeMultiplatform)
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.compose)
     alias(libs.plugins.composeCompiler)
 }
 
-val jsAppName = project.name + "-js"
-val wasmAppName = project.name + "-wasm"
-
 kotlin {
-    @OptIn(ExperimentalKotlinGradlePluginApi::class)
-    applyDefaultHierarchyTemplate {
-        common {
-            group("web") {
-                withJs()
-                withWasmJs()
-            }
-        }
-    }
-
     js(IR) {
-        outputModuleName.set(jsAppName)
-
-        browser {
-            commonWebpackConfig {
-                outputFileName = "$jsAppName.js"
-            }
-        }
-
+        browser()
         binaries.executable()
     }
-
-    @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        outputModuleName.set(wasmAppName)
-        browser {
-            commonWebpackConfig {
-                outputFileName = "$wasmAppName.js"
-            }
-        }
+        browser()
         binaries.executable()
     }
 
     sourceSets {
-        commonMain.dependencies {
-            implementation(compose.foundation)
-            implementation(project(":example:shared"))
-            implementation(project(":apng-logger"))
+        val webMain by creating {
+            dependsOn(commonMain.get())
+            dependencies {
+                implementation(project(":example:shared"))
+                implementation(compose.foundation)
+            }
+        }
+        val jsMain by getting {
+            dependsOn(webMain)
+        }
+        val wasmJsMain by getting {
+            dependsOn(webMain)
         }
     }
 }

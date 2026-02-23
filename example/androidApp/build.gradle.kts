@@ -1,61 +1,48 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    alias(libs.plugins.androidApplication)
-    alias(libs.plugins.kotlinAndroid)
-    alias(libs.plugins.composeMultiplatform)
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.compose)
     alias(libs.plugins.composeCompiler)
 }
 
-kotlin {
-    jvmToolchain(21)
-}
-
-dependencies {
-    implementation(project(":example:shared"))
-    implementation(project(":apng-logger"))
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.activity.compose)
-//    implementation(compose.uiTooling)
-//    implementation(compose.preview)
-//    implementation(compose.foundation)
-//    implementation(compose.components.resources)
-}
+val _jvmTarget = findProperty("jvmTarget").toString()
 
 android {
     namespace = "io.github.lugf027.apng.example.android"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
+    compileSdk = (findProperty("android.compileSdk") as String).toInt()
 
     defaultConfig {
-        applicationId = namespace
-        minSdk = libs.versions.android.minSdk.get().toInt()
-        targetSdk = libs.versions.android.targetSdk.get().toInt()
+        applicationId = "io.github.lugf027.apng.example.android"
+        minSdk = (findProperty("android.minSdk") as String).toInt()
+        targetSdk = (findProperty("android.targetSdk") as String).toInt()
         versionCode = 1
-        versionName = "1.0.0"
+        versionName = "1.0"
     }
-
-    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
-    sourceSets["main"].res.srcDirs("src/androidMain/res")
-
+    buildFeatures {
+        compose = true
+    }
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.getByName("debug")
+        }
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+}
 
-    buildTypes {
-        getByName("release") {
-            isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("debug")
-        }
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.fromTarget(_jvmTarget))
     }
+}
 
-    buildFeatures {
-        compose = true
-    }
-
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
-    }
+dependencies {
+    implementation(project(":example:shared"))
+    implementation(project(":apng-core"))
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.compose.foundation)
 }
