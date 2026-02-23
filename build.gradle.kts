@@ -1,17 +1,19 @@
-import com.android.build.api.dsl.LibraryExtension
+import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
-    alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.kotlin.android).apply(false)
-    alias(libs.plugins.compose).apply(false)
+    alias(libs.plugins.kotlinMultiplatform) apply false
+    alias(libs.plugins.kotlinAndroid).apply(false)
+    alias(libs.plugins.jetbrainsCompose).apply(false)
     alias(libs.plugins.composeCompiler).apply(false)
-    alias(libs.plugins.android.application).apply(false)
-    alias(libs.plugins.android.library).apply(false)
-    alias(libs.plugins.mavenPublish)
+    alias(libs.plugins.androidApplication).apply(false)
+    alias(libs.plugins.androidLibrary).apply(false)
+    alias(libs.plugins.androidKotlinMultiplatformLibrary).apply(false)
+    alias(libs.plugins.mavenPublish).apply(false)
 }
 
 rootProject.projectDir.resolve("local.properties").let {
@@ -25,10 +27,6 @@ rootProject.projectDir.resolve("local.properties").let {
     }
 }
 
-kotlin {
-    jvm()
-}
-
 val _jvmTarget = findProperty("jvmTarget").toString()
 
 subprojects {
@@ -39,17 +37,16 @@ subprojects {
         return@subprojects
     }
 
+    plugins.apply("com.android.kotlin.multiplatform.library")
     plugins.apply("org.jetbrains.kotlin.multiplatform")
     plugins.apply("com.vanniktech.maven.publish")
-    plugins.apply("android-library")
 
-    androidLibrarySetup()
     multiplatformSetup()
     publicationSetup()
 }
 
 fun Project.publicationSetup() {
-    mavenPublishing {
+    extensions.configure<com.vanniktech.maven.publish.MavenPublishBaseExtension> {
         publishToMavenCentral(true)
         signAllPublications()
 
@@ -82,7 +79,7 @@ fun Project.publicationSetup() {
 
 @OptIn(ExperimentalKotlinGradlePluginApi::class)
 fun Project.multiplatformSetup() {
-    project.kotlin {
+    extensions.configure<KotlinMultiplatformExtension> {
 
         applyDefaultHierarchyTemplate {
             common {
@@ -117,13 +114,6 @@ fun Project.multiplatformSetup() {
             }
         }
 
-        androidTarget {
-            compilerOptions {
-                jvmTarget.set(JvmTarget.fromTarget(_jvmTarget))
-            }
-            publishLibraryVariants("release")
-        }
-
         iosArm64()
         iosSimulatorArm64()
         iosX64()
@@ -134,23 +124,29 @@ fun Project.multiplatformSetup() {
             browser()
         }
 
-        wasmJs() {
+        @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
+        wasmJs {
             browser()
         }
-    }
-}
 
-fun Project.androidLibrarySetup() {
-    extensions.configure<LibraryExtension> {
-        namespace = group.toString() + path.replace("-", "").split(":").joinToString(".")
-        compileSdk = (findProperty("android.compileSdk") as String).toInt()
-
-        defaultConfig {
-            minSdk = (findProperty("android.minSdk") as String).toInt()
+        // The com.android.kotlin.multiplatform.library plugin creates the android target,
+        // but the hierarchy template doesn't automatically connect it to custom groups.
+        // Manually wire androidMain into the same intermediate source sets as other JVM targets.
+        sourceSets.named("androidMain").configure {
+            dependsOn(sourceSets.getByName("jvmNativeMain"))
+            dependsOn(sourceSets.getByName("javaMain"))
         }
-        compileOptions {
-            sourceCompatibility = JavaVersion.VERSION_11
-            targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    // Configure Android target via the KMP Android library plugin
+    extensions.configure<KotlinMultiplatformExtension> {
+        targets.withType(KotlinMultiplatformAndroidLibraryTarget::class.java).configureEach {
+            namespace = group.toString() + path.replace("-", "").split(":").joinToString(".")
+            compileSdk = (findProperty("android.compileSdk") as String).toInt()
+            minSdk = (findProperty("android.minSdk") as String).toInt()
+            compilerOptions {
+                jvmTarget.set(JvmTarget.fromTarget(_jvmTarget))
+            }
         }
     }
 }

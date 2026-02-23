@@ -1,7 +1,9 @@
+import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
+
 plugins {
-    alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.compose)
+    alias(libs.plugins.androidKotlinMultiplatformLibrary)
+    alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.composeCompiler)
 }
 
@@ -35,7 +37,6 @@ kotlin {
     }
 
     jvm("desktop")
-    androidTarget()
     listOf(
         iosArm64(),
         iosSimulatorArm64(),
@@ -49,7 +50,14 @@ kotlin {
     macosArm64()
     macosX64()
     js(IR) { browser() }
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
     wasmJs { browser() }
+
+    // Wire androidMain into custom hierarchy groups
+    sourceSets.named("androidMain").configure {
+        dependsOn(sourceSets.getByName("jvmNativeMain"))
+        dependsOn(sourceSets.getByName("javaMain"))
+    }
 
     sourceSets {
         commonMain.dependencies {
@@ -89,14 +97,10 @@ kotlin {
     }
 }
 
-android {
-    namespace = "io.github.lugf027.apng.example.shared"
-    compileSdk = (findProperty("android.compileSdk") as String).toInt()
-    defaultConfig {
+kotlin {
+    targets.withType(KotlinMultiplatformAndroidLibraryTarget::class.java).configureEach {
+        namespace = "io.github.lugf027.apng.example.shared"
+        compileSdk = (findProperty("android.compileSdk") as String).toInt()
         minSdk = (findProperty("android.minSdk") as String).toInt()
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
     }
 }

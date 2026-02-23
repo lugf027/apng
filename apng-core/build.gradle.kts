@@ -1,9 +1,11 @@
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+
 plugins {
-    alias(libs.plugins.compose)
+    alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.composeCompiler)
 }
 
-kotlin {
+extensions.configure<KotlinMultiplatformExtension> {
     sourceSets {
         commonMain.dependencies {
             implementation(libs.compose.foundation)
