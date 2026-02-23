@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.clipRect
@@ -16,9 +17,10 @@ public fun rememberApngPainter(
     progress: () -> Float,
     clipToCompositionBounds: Boolean = true,
 ): Painter {
-    return remember(composition) {
+    val currentProgress by rememberUpdatedState(progress)
+    return remember(composition, clipToCompositionBounds) {
         if (composition != null) {
-            ApngPainterImpl(composition, progress, clipToCompositionBounds)
+            ApngPainterImpl(composition, { currentProgress() }, clipToCompositionBounds)
         } else {
             EmptyPainter
         }

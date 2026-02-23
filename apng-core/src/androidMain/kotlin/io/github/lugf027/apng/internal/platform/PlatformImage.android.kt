@@ -50,9 +50,9 @@ internal actual fun composeFrames(
         }
 
         // Decode frame
-        val frameBitmap = BitmapFactory.decodeByteArray(
-            getFramePngBytes(i), 0, getFramePngBytes(i).size
-        ) ?: continue
+        val pngBytes = getFramePngBytes(i)
+        val frameBitmap = BitmapFactory.decodeByteArray(pngBytes, 0, pngBytes.size)
+            ?: continue
 
         // Draw frame onto canvas
         val dstRect = Rect(xOffset, yOffset, xOffset + frameWidth, yOffset + frameHeight)

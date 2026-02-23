@@ -19,7 +19,7 @@ internal class LruMap<T : Any>(
 
     override fun putAll(from: Map<out Any, T>) = lock.withLock { putAllRaw(from) }
 
-    override fun remove(key: Any): T? = lock.withLock { removeRaw(key) }
+    override fun remove(key: Any): T? = lock.withLock { delegate.remove(key) }
 
     override fun get(key: Any): T? = lock.withLock { getRaw(key) }
 
@@ -48,8 +48,9 @@ internal class LruMap<T : Any>(
             return value
         }
 
-        while (size > limit && remove(keys.firstOrNull()) != null) {
-            // evict oldest
+        while (size >= limit) {
+            val oldest = delegate.keys.firstOrNull() ?: break
+            delegate.remove(oldest) ?: break
         }
 
         return delegate.put(key, value)
@@ -62,12 +63,10 @@ internal class LruMap<T : Any>(
     }
 
     private fun getRaw(key: Any): T? {
-        val cached = removeRaw(key) ?: return null
-        putRaw(key, cached)
+        val cached = delegate.remove(key) ?: return null
+        delegate.put(key, cached)
         return cached
     }
-
-    private fun removeRaw(key: Any): T? = delegate.remove(key)
 
     private fun clearRaw() = delegate.clear()
 }

@@ -8,7 +8,8 @@ internal suspend fun networkLoad(
     return try {
         try {
             cacheStrategy.load(url)?.let { return it }
-        } catch (_: Throwable) {
+        } catch (e: Throwable) {
+            Apng.logger?.warn("Failed to load from cache for $url", e)
         }
 
         val bytes = request(url)
@@ -19,7 +20,8 @@ internal suspend fun networkLoad(
             Apng.logger?.error("Failed to cache downloaded data", e)
         }
         bytes
-    } catch (_: Throwable) {
+    } catch (e: Throwable) {
+        Apng.logger?.error("Failed to load APNG from network: $url", e)
         null
     }
 }

@@ -9,21 +9,26 @@ import kotlinx.coroutines.sync.withLock
 public class MultiOwnerMutex {
 
     private val lock = reentrantLock()
-    private val mutex = mutableMapOf<Any, Mutex>()
+    private val mutexes = mutableMapOf<Any, MutexEntry>()
 
     public suspend fun <T> withLock(key: Any, action: suspend () -> T): T {
-        val keyLock = lock.withLock {
-            mutex.getOrPut(key, ::Mutex)
+        val entry = lock.withLock {
+            mutexes.getOrPut(key) { MutexEntry(Mutex(), 0) }.also { it.waiters++ }
         }
 
         return try {
-            keyLock.withLock {
+            entry.mutex.withLock {
                 action()
             }
         } finally {
             lock.withLock {
-                mutex.remove(key)
+                entry.waiters--
+                if (entry.waiters == 0) {
+                    mutexes.remove(key)
+                }
             }
         }
     }
+
+    private class MutexEntry(val mutex: Mutex, var waiters: Int)
 }

@@ -111,7 +111,6 @@ public fun rememberApngComposition(
             }
             result.complete(composition)
         } catch (c: CancellationException) {
-            result.completeExceptionally(c)
             throw c
         } catch (t: Throwable) {
             result.completeExceptionally(
@@ -138,7 +137,6 @@ public fun rememberApngComposition(
             val composition = withContext(Apng.ioDispatcher()) { spec.load() }
             result.complete(composition)
         } catch (c: CancellationException) {
-            result.completeExceptionally(c)
             throw c
         } catch (t: Throwable) {
             result.completeExceptionally(
