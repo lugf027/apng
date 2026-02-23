@@ -1,11 +1,13 @@
-import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    alias(libs.plugins.androidKotlinMultiplatformLibrary)
     alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.androidLibrary)
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.composeCompiler)
 }
+
+val _jvmTarget = findProperty("jvmTarget").toString()
 
 kotlin {
     @OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
@@ -36,6 +38,11 @@ kotlin {
         }
     }
 
+    androidTarget {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.fromTarget(_jvmTarget))
+        }
+    }
     jvm("desktop")
     listOf(
         iosArm64(),
@@ -52,12 +59,6 @@ kotlin {
     js(IR) { browser() }
     @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
     wasmJs { browser() }
-
-    // Wire androidMain into custom hierarchy groups
-    sourceSets.named("androidMain").configure {
-        dependsOn(sourceSets.getByName("jvmNativeMain"))
-        dependsOn(sourceSets.getByName("javaMain"))
-    }
 
     sourceSets {
         commonMain.dependencies {
@@ -97,10 +98,14 @@ kotlin {
     }
 }
 
-kotlin {
-    targets.withType(KotlinMultiplatformAndroidLibraryTarget::class.java).configureEach {
-        namespace = "io.github.lugf027.apng.example.shared"
-        compileSdk = (findProperty("android.compileSdk") as String).toInt()
+android {
+    namespace = "io.github.lugf027.apng.example.shared"
+    compileSdk = (findProperty("android.compileSdk") as String).toInt()
+    defaultConfig {
         minSdk = (findProperty("android.minSdk") as String).toInt()
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 }
