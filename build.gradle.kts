@@ -33,7 +33,7 @@ val _jvmTarget = findProperty("jvmTarget").toString()
 
 subprojects {
     group = findProperty("group") as String
-    version = findProperty("version") as String
+    version = findProperty("VERSION") as String
 
     if (!name.startsWith("apng")) {
         return@subprojects
