@@ -14,3 +14,16 @@ kotlin {
         }
     }
 }
+
+mavenPublishing {
+    coordinates(
+        groupId = "io.github.lugf027",
+        artifactId = "apng-network-core",
+        version = rootProject.property("VERSION").toString(),
+    )
+
+    pom {
+        name.set("APNG Network Core")
+        description.set("Disk LRU cache and network caching strategy for APNG Compose Multiplatform")
+    }
+}

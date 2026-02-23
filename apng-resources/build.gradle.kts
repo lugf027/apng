@@ -12,3 +12,16 @@ kotlin {
         }
     }
 }
+
+mavenPublishing {
+    coordinates(
+        groupId = "io.github.lugf027",
+        artifactId = "apng-resources",
+        version = rootProject.property("VERSION").toString(),
+    )
+
+    pom {
+        name.set("APNG Resources")
+        description.set("Compose Multiplatform Resources integration for loading APNG animations from Res")
+    }
+}

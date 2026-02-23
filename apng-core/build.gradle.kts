@@ -17,3 +17,16 @@ kotlin {
         }
     }
 }
+
+mavenPublishing {
+    coordinates(
+        groupId = "io.github.lugf027",
+        artifactId = "apng-core",
+        version = rootProject.property("VERSION").toString(),
+    )
+
+    pom {
+        name.set("APNG Core")
+        description.set("Core APNG parsing, frame composing, and Compose Multiplatform animation rendering library")
+    }
+}

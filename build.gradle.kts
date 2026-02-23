@@ -50,30 +50,31 @@ subprojects {
 
 fun Project.publicationSetup() {
     mavenPublishing {
-        publishToMavenCentral()
+        publishToMavenCentral(true)
         signAllPublications()
 
         pom {
-            name.set("Apng Compose")
-            description.set("Compose Multiplatform APNG animation library")
             url.set("https://github.com/lugf027/apng")
+            inceptionYear.set("2026")
 
             licenses {
                 license {
                     name.set("MIT")
                     url.set("https://opensource.org/licenses/MIT")
+                    distribution.set("repo")
                 }
             }
             developers {
                 developer {
                     id.set("lugf027")
                     name.set("lugf027")
+                    url.set("https://github.com/lugf027")
                 }
             }
             scm {
                 url.set("https://github.com/lugf027/apng")
-                connection.set("scm:git:git://github.com/lugf027/apng.git")
-                developerConnection.set("scm:git:git://github.com/lugf027/apng.git")
+                connection.set("scm:git:https://github.com/lugf027/apng.git")
+                developerConnection.set("scm:git:https://github.com/lugf027/apng.git")
             }
         }
     }
