@@ -155,4 +155,28 @@ fun Project.multiplatformSetup() {
             }
         }
     }
+
+    fixComposeResourcesForKmpAndroid()
+}
+
+/**
+ * Workaround: JetBrains Compose Resources plugin (1.10.x) + com.android.kotlin.multiplatform.library
+ * (AGP 8.10+) — `variant.sources.assets` returns null, so the CopyResourcesToAndroidAssetsTask's
+ * `outputDirectory` is never configured. This sets a fallback value to prevent task failure.
+ *
+ * Note: For modules that contain compose resources consumed by an Android app, the app module must
+ * also register this output directory as an Android assets source (see example:androidApp).
+ */
+fun Project.fixComposeResourcesForKmpAndroid() {
+    tasks.configureEach {
+        if (name.contains("ComposeResourcesToAndroidAssets")) {
+            val outProp = this::class.java.methods.firstOrNull { it.name == "getOutputDirectory" }
+            if (outProp != null) {
+                val dirProp = outProp.invoke(this) as? org.gradle.api.file.DirectoryProperty
+                if (dirProp != null && !dirProp.isPresent) {
+                    dirProp.set(project.layout.buildDirectory.dir("generated/compose/androidAssets/$name"))
+                }
+            }
+        }
+    }
 }

@@ -1,4 +1,5 @@
 import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
+import org.gradle.api.file.DirectoryProperty
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -108,6 +109,29 @@ kotlin {
         minSdk = (findProperty("android.minSdk") as String).toInt()
         compilerOptions {
             jvmTarget.set(JvmTarget.fromTarget(_jvmTarget))
+        }
+    }
+}
+
+/**
+ * Workaround for JetBrains Compose Resources + com.android.kotlin.multiplatform.library (AGP 8.10+).
+ *
+ * The Compose Resources plugin calls `variant.sources.assets?.addGeneratedSourceDirectory(...)` to
+ * register compose resources as Android assets. However, with the KMP Android library plugin,
+ * `sources.assets` returns null, so `CopyResourcesToAndroidAssetsTask.outputDirectory` is never
+ * configured and resources are not included in the AAR/APK.
+ *
+ * This sets a fallback outputDirectory so the copy task doesn't fail.
+ * The consuming app module (androidApp) must also register this output as an assets source.
+ */
+tasks.configureEach {
+    if (name.contains("ComposeResourcesToAndroidAssets")) {
+        val outProp = this::class.java.methods.firstOrNull { it.name == "getOutputDirectory" }
+        if (outProp != null) {
+            val dirProp = outProp.invoke(this) as? DirectoryProperty
+            if (dirProp != null && !dirProp.isPresent) {
+                dirProp.set(project.layout.buildDirectory.dir("generated/compose/androidAssets/$name"))
+            }
         }
     }
 }

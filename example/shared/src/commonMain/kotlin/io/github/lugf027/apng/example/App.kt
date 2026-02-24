@@ -219,12 +219,13 @@ private fun AssetGalleryCard(
     asset: ApngAsset,
     onClick: () -> Unit,
 ) {
-    val composition by rememberApngComposition {
+    val compositionResult = rememberApngComposition {
         ApngCompositionSpec.ComposeResource(
             cacheKey = asset.cacheKey,
             readBytes = { Res.readBytes("files/${asset.fileName}") },
         )
     }
+    val composition = compositionResult.value
 
     Card(
         modifier = Modifier
@@ -250,25 +251,30 @@ private fun AssetGalleryCard(
                     .background(Color(0xFF12121F)),
                 contentAlignment = Alignment.Center,
             ) {
-                val comp = composition
-                if (comp == null) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(28.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                } else {
-                    val painter = rememberApngPainter(
-                        composition = comp,
-                        isPlaying = true,
-                        iterations = Apng.IterateForever,
-                    )
-                    Image(
-                        painter = painter,
-                        contentDescription = asset.displayName,
-                        modifier = Modifier.fillMaxSize().padding(8.dp),
-                        contentScale = ContentScale.Fit,
-                    )
+                when {
+                    compositionResult.isFailure -> {
+                        ErrorIndicator(compositionResult.error)
+                    }
+                    composition == null -> {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(28.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                    else -> {
+                        val painter = rememberApngPainter(
+                            composition = composition,
+                            isPlaying = true,
+                            iterations = Apng.IterateForever,
+                        )
+                        Image(
+                            painter = painter,
+                            contentDescription = asset.displayName,
+                            modifier = Modifier.fillMaxSize().padding(8.dp),
+                            contentScale = ContentScale.Fit,
+                        )
+                    }
                 }
             }
 
@@ -342,12 +348,13 @@ private fun DetailScreen(
     asset: ApngAsset,
     onBack: () -> Unit,
 ) {
-    val composition by rememberApngComposition {
+    val compositionResult = rememberApngComposition {
         ApngCompositionSpec.ComposeResource(
             cacheKey = asset.cacheKey,
             readBytes = { Res.readBytes("files/${asset.fileName}") },
         )
     }
+    val composition = compositionResult.value
 
     var isPlaying by remember { mutableStateOf(true) }
     var speed by remember { mutableStateOf(1f) }
@@ -364,6 +371,7 @@ private fun DetailScreen(
                 // Mobile / narrow: vertical layout
                 CompactDetailLayout(
                     composition = composition,
+                    error = compositionResult.error,
                     isPlaying = isPlaying,
                     speed = speed,
                     iterations = iterations,
@@ -377,6 +385,7 @@ private fun DetailScreen(
                 // Desktop / wide: side-by-side layout
                 WideDetailLayout(
                     composition = composition,
+                    error = compositionResult.error,
                     isPlaying = isPlaying,
                     speed = speed,
                     iterations = iterations,
@@ -394,6 +403,7 @@ private fun DetailScreen(
 @Composable
 private fun CompactDetailLayout(
     composition: ApngComposition?,
+    error: Throwable? = null,
     isPlaying: Boolean,
     speed: Float,
     iterations: Int,
@@ -418,6 +428,7 @@ private fun CompactDetailLayout(
             iterations = iterations,
             scale = scale,
             previewSize = 260.dp,
+            error = error,
         )
         InfoCard(composition)
         ControlsCard(
@@ -436,6 +447,7 @@ private fun CompactDetailLayout(
 @Composable
 private fun WideDetailLayout(
     composition: ApngComposition?,
+    error: Throwable? = null,
     isPlaying: Boolean,
     speed: Float,
     iterations: Int,
@@ -465,6 +477,7 @@ private fun WideDetailLayout(
                 iterations = iterations,
                 scale = scale,
                 previewSize = 360.dp,
+                error = error,
             )
         }
 
@@ -501,6 +514,7 @@ private fun AnimationPreview(
     iterations: Int,
     scale: Float,
     previewSize: Dp,
+    error: Throwable? = null,
 ) {
     Box(
         modifier = Modifier
@@ -509,25 +523,30 @@ private fun AnimationPreview(
             .background(Color(0xFF0D0D1A)),
         contentAlignment = Alignment.Center,
     ) {
-        val comp = composition
-        if (comp == null) {
-            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-        } else {
-            val painter = rememberApngPainter(
-                composition = comp,
-                isPlaying = isPlaying,
-                iterations = iterations,
-                speed = speed,
-            )
-            Image(
-                painter = painter,
-                contentDescription = "APNG",
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-                    .graphicsLayer(scaleX = scale, scaleY = scale),
-                contentScale = ContentScale.Fit,
-            )
+        when {
+            error != null -> {
+                ErrorIndicator(error)
+            }
+            composition == null -> {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            }
+            else -> {
+                val painter = rememberApngPainter(
+                    composition = composition,
+                    isPlaying = isPlaying,
+                    iterations = iterations,
+                    speed = speed,
+                )
+                Image(
+                    painter = painter,
+                    contentDescription = "APNG",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                        .graphicsLayer(scaleX = scale, scaleY = scale),
+                    contentScale = ContentScale.Fit,
+                )
+            }
         }
     }
 }
@@ -701,9 +720,10 @@ private fun SliderControl(
 
 @Composable
 private fun NetworkDetailScreen(onBack: () -> Unit) {
-    val composition by rememberApngComposition {
+    val compositionResult = rememberApngComposition {
         ApngCompositionSpec.Url(NETWORK_APNG_URL)
     }
+    val composition = compositionResult.value
 
     var isPlaying by remember { mutableStateOf(true) }
     var speed by remember { mutableStateOf(1f) }
@@ -719,6 +739,7 @@ private fun NetworkDetailScreen(onBack: () -> Unit) {
             if (compact) {
                 CompactDetailLayout(
                     composition = composition,
+                    error = compositionResult.error,
                     isPlaying = isPlaying,
                     speed = speed,
                     iterations = iterations,
@@ -731,6 +752,7 @@ private fun NetworkDetailScreen(onBack: () -> Unit) {
             } else {
                 WideDetailLayout(
                     composition = composition,
+                    error = compositionResult.error,
                     isPlaying = isPlaying,
                     speed = speed,
                     iterations = iterations,
@@ -742,6 +764,32 @@ private fun NetworkDetailScreen(onBack: () -> Unit) {
                 )
             }
         }
+    }
+}
+
+// ── Error Indicator ──
+
+@Composable
+private fun ErrorIndicator(error: Throwable?) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.padding(12.dp),
+    ) {
+        Text(
+            text = "!",
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.error,
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            text = error?.message?.take(80) ?: "Failed to load",
+            fontSize = 10.sp,
+            color = MaterialTheme.colorScheme.error.copy(alpha = 0.8f),
+            textAlign = TextAlign.Center,
+            maxLines = 3,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 
