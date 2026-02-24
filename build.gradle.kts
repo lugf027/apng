@@ -33,6 +33,8 @@ val _jvmTarget = findProperty("jvmTarget").toString()
 val resolvedVersion: String = System.getenv("VERSION_TAG").takeUnless { it.isNullOrBlank() }
     ?: findProperty("VERSION") as String
 
+version = resolvedVersion
+
 subprojects {
     group = findProperty("group") as String
     version = resolvedVersion
