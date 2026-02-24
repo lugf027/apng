@@ -7,7 +7,7 @@
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.lugf027/apng-core.svg)](https://central.sonatype.com/search?q=io.github.lugf027)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-A high-performance [APNG (Animated PNG)](https://wiki.mozilla.org/APNG_Specification) parsing and rendering library developed based on Kotlin Multiplatform (KMP). It supports consistent rendering effects on Android, iOS, Desktop (JVM), and Web (Wasm/JS) platforms.
+A high-performance [APNG (Animated PNG)](https://wiki.mozilla.org/APNG_Specification) parsing and rendering library built with Kotlin Multiplatform(KMP). It provides consistent animation rendering across Android, iOS, Desktop (JVM), and Web (JS/Wasm).
 
 | Android | Desktop (JVM) | iOS | macOS | JS | WasmJS |
 |:-------:|:-------------:|:---:|:-----:|:--:|:------:|
