@@ -14,7 +14,7 @@
 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 <p align="center">
-  <img src="docs/images/demo_desktop.png" alt="桌面端演示" width="600"/>
+  <img src="docs/images/example_desktop.gif" alt="桌面端演示" width="600"/>
 </p>
 
 ## 引入依赖

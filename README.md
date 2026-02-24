@@ -14,7 +14,7 @@ A high-performance [APNG (Animated PNG)](https://wiki.mozilla.org/APNG_Specifica
 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 <p align="center">
-  <img src="docs/images/demo_desktop.png" alt="Desktop Demo" width="600"/>
+  <img src="docs/images/example_desktop.gif" alt="Desktop Demo" width="600"/>
 </p>
 
 ## Setup
