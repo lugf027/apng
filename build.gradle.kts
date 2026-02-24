@@ -156,16 +156,30 @@ fun Project.multiplatformSetup() {
         }
     }
 
-    fixComposeResourcesForKmpAndroid()
 }
 
+// ── Compose Resources + KMP Android Library Workaround ──────────────────────
+//
+// JetBrains Compose Resources plugin (1.10.x) calls
+//   variant.sources.assets?.addGeneratedSourceDirectory(...)
+// to register compose resources as Android assets. With com.android.kotlin.multiplatform.library
+// (AGP 8.10+), `sources.assets` returns null, so CopyResourcesToAndroidAssetsTask's
+// `outputDirectory` is never configured and resources are lost.
+//
+// Two-part fix:
+//   1. fixComposeResourcesForKmpAndroid() — called by the KMP library that owns composeResources.
+//      Sets a fallback outputDirectory so the copy task succeeds.
+//   2. consumeKmpLibraryComposeAssets() — called by the Android app that depends on that library.
+//      Registers the library's compose resources output as an Android assets source.
+//
+// These are only needed for modules using com.android.kotlin.multiplatform.library that contain
+// (or consume) Compose Resources. The apng-* library modules have no composeResources and do not
+// need this workaround.
+
 /**
- * Workaround: JetBrains Compose Resources plugin (1.10.x) + com.android.kotlin.multiplatform.library
- * (AGP 8.10+) — `variant.sources.assets` returns null, so the CopyResourcesToAndroidAssetsTask's
- * `outputDirectory` is never configured. This sets a fallback value to prevent task failure.
- *
- * Note: For modules that contain compose resources consumed by an Android app, the app module must
- * also register this output directory as an Android assets source (see example:androidApp).
+ * Fix for KMP library modules that own composeResources:
+ * Sets a fallback `outputDirectory` on CopyResourcesToAndroidAssetsTask when the Compose Resources
+ * plugin fails to configure it (due to `variant.sources.assets` being null).
  */
 fun Project.fixComposeResourcesForKmpAndroid() {
     tasks.configureEach {
@@ -180,3 +194,33 @@ fun Project.fixComposeResourcesForKmpAndroid() {
         }
     }
 }
+
+/**
+ * Fix for Android app modules that consume a KMP library with composeResources:
+ * Registers the library's compose resources output directory as an Android assets source and
+ * wires task dependencies so resources are copied before being merged into the APK.
+ *
+ * @param libraryProjectPath Gradle project path of the KMP library (e.g. ":example:shared")
+ */
+fun Project.consumeKmpLibraryComposeAssets(libraryProjectPath: String) {
+    val copyTaskName = "copyAndroidMainComposeResourcesToAndroidAssets"
+    val assetsDir = project(libraryProjectPath).layout.buildDirectory.dir(
+        "generated/compose/androidAssets/$copyTaskName"
+    )
+
+    extensions.configure<com.android.build.api.dsl.ApplicationExtension> {
+        sourceSets.getByName("main").assets.srcDir(assetsDir)
+    }
+
+    tasks.configureEach {
+        if (name.startsWith("merge") && name.endsWith("Assets")) {
+            dependsOn("$libraryProjectPath:$copyTaskName")
+        }
+    }
+}
+
+// Expose workaround functions to subproject build scripts via extra properties.
+// Subprojects call: val fn by rootProject.extra; fn.invoke(this)
+rootProject.extra["fixComposeResourcesForKmpAndroid"] = Action<Project> { fixComposeResourcesForKmpAndroid() }
+rootProject.extra["consumeKmpLibraryComposeAssets"] =
+    { proj: Project, libraryPath: String -> proj.consumeKmpLibraryComposeAssets(libraryPath) }

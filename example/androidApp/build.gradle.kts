@@ -46,24 +46,6 @@ dependencies {
     implementation(libs.compose.foundation)
 }
 
-/**
- * Workaround: com.android.kotlin.multiplatform.library (used by :example:shared) does not support
- * Android assets in its variant Sources API (`sources.assets` returns null). The JetBrains Compose
- * Resources plugin's CopyResourcesToAndroidAssetsTask fails to register its output, so compose
- * resources from KMP library modules are not included in the APK.
- *
- * This workaround registers the shared module's compose resources output directory as an Android
- * assets source in the consuming app module, and wires task dependencies so resources are copied
- * before being merged into the APK.
- */
-val sharedComposeAssetsDir = project(":example:shared").layout.buildDirectory.dir(
-    "generated/compose/androidAssets/copyAndroidMainComposeResourcesToAndroidAssets"
-)
-
-android.sourceSets.getByName("main").assets.srcDir(sharedComposeAssetsDir)
-
-tasks.configureEach {
-    if (name.startsWith("merge") && name.endsWith("Assets")) {
-        dependsOn(":example:shared:copyAndroidMainComposeResourcesToAndroidAssets")
-    }
-}
+// Workaround: Compose Resources + KMP Android library — see root build.gradle.kts for details.
+@Suppress("UNCHECKED_CAST")
+(rootProject.extra["consumeKmpLibraryComposeAssets"] as (Project, String) -> Unit)(project, ":example:shared")
