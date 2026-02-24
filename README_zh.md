@@ -1,13 +1,13 @@
-# APNG Compose Multiplatform
+# APNG Kotlin Multiplatform
 
 [English Version](./README.md)
 
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.3.0-blue.svg)](https://kotlinlang.org)
-[![Compose Multiplatform](https://img.shields.io/badge/Compose%20Multiplatform-1.10.1-brightgreen.svg)](https://www.jetbrains.com/lp/compose-multiplatform/)
+[![Kotlin Multiplatform](https://img.shields.io/badge/Kotlin%20Multiplatform-blue.svg)](https://kotlinlang.org/docs/multiplatform.html)
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.lugf027/apng-core.svg)](https://central.sonatype.com/search?q=io.github.lugf027)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-一个用于渲染 [APNG（动画 PNG）](https://wiki.mozilla.org/APNG_Specification)的 Compose Multiplatform 库。API 设计参考 [Compottie](https://github.com/niclas-vogel/Compottie)。
+一个基于 Kotlin Multiplatform (KMP) 开发的高性能 [APNG（动画 PNG）](https://wiki.mozilla.org/APNG_Specification)解析与渲染库，支持在 Android、iOS、Desktop (JVM) 和 Web (Wasm/JS) 平台上实现一致的渲染效果。
 
 | Android | Desktop (JVM) | iOS | macOS | JS | WasmJS |
 |:-------:|:-------------:|:---:|:-----:|:--:|:------:|
@@ -28,7 +28,7 @@ implementation("io.github.lugf027:apng-core:<version>")
 // 网络库：基于 Ktor 的 URL 加载 + 磁盘 LRU 缓存
 implementation("io.github.lugf027:apng-network:<version>")
 
-// 资源库：从 Compose Multiplatform Resources (Res) 加载 APNG
+// 资源库：从 KMP Resources (Res) 加载 APNG
 implementation("io.github.lugf027:apng-resources:<version>")
 ```
 
@@ -106,7 +106,7 @@ val progress by animateApngCompositionAsState(
 | **apng-core** | `io.github.lugf027:apng-core` | APNG 解析、帧合成、Compose 动画渲染 |
 | **apng-network-core** | `io.github.lugf027:apng-network-core` | 磁盘 LRU 缓存与网络缓存策略 |
 | **apng-network** | `io.github.lugf027:apng-network` | 基于 Ktor 的网络加载 + 内置磁盘缓存 |
-| **apng-resources** | `io.github.lugf027:apng-resources` | Compose Multiplatform Resources 集成 |
+| **apng-resources** | `io.github.lugf027:apng-resources` | KMP Resources 集成 |
 
 ### 模块依赖关系
 

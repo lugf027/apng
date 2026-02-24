@@ -25,6 +25,6 @@ mavenPublishing {
 
     pom {
         name.set("APNG Resources")
-        description.set("Compose Multiplatform Resources integration for loading APNG animations from Res")
+        description.set("Kotlin Multiplatform Resources integration for loading APNG animations from Res")
     }
 }

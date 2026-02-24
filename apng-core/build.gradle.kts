@@ -29,6 +29,6 @@ mavenPublishing {
 
     pom {
         name.set("APNG Core")
-        description.set("Core APNG parsing, frame composing, and Compose Multiplatform animation rendering library")
+        description.set("Core APNG parsing, frame composing, and Kotlin Multiplatform animation rendering library")
     }
 }

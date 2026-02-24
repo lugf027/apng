@@ -26,6 +26,6 @@ mavenPublishing {
 
     pom {
         name.set("APNG Network Core")
-        description.set("Disk LRU cache and network caching strategy for APNG Compose Multiplatform")
+        description.set("Disk LRU cache and network caching strategy for APNG Kotlin Multiplatform")
     }
 }

@@ -20,6 +20,6 @@ mavenPublishing {
 
     pom {
         name.set("APNG Network")
-        description.set("Ktor-based network loading with built-in disk caching for APNG Compose Multiplatform")
+        description.set("Ktor-based network loading with built-in disk caching for APNG Kotlin Multiplatform")
     }
 }

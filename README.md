@@ -1,13 +1,13 @@
-# APNG Compose Multiplatform
+# APNG Kotlin Multiplatform
 
 [中文版本](./README_zh.md)
 
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.3.0-blue.svg)](https://kotlinlang.org)
-[![Compose Multiplatform](https://img.shields.io/badge/Compose%20Multiplatform-1.10.1-brightgreen.svg)](https://www.jetbrains.com/lp/compose-multiplatform/)
+[![Kotlin Multiplatform](https://img.shields.io/badge/Kotlin%20Multiplatform-blue.svg)](https://kotlinlang.org/docs/multiplatform.html)
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.lugf027/apng-core.svg)](https://central.sonatype.com/search?q=io.github.lugf027)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-A Compose Multiplatform library for rendering [APNG (Animated PNG)](https://wiki.mozilla.org/APNG_Specification) animations. API design inspired by [Compottie](https://github.com/niclas-vogel/Compottie).
+A high-performance [APNG (Animated PNG)](https://wiki.mozilla.org/APNG_Specification) parsing and rendering library developed based on Kotlin Multiplatform (KMP). It supports consistent rendering effects on Android, iOS, Desktop (JVM), and Web (Wasm/JS) platforms.
 
 | Android | Desktop (JVM) | iOS | macOS | JS | WasmJS |
 |:-------:|:-------------:|:---:|:-----:|:--:|:------:|
@@ -28,7 +28,7 @@ implementation("io.github.lugf027:apng-core:<version>")
 // Network: Ktor-based URL loading with disk LRU caching
 implementation("io.github.lugf027:apng-network:<version>")
 
-// Resources: Load APNG from Compose Multiplatform Resources (Res)
+// Resources: Load APNG from KMP Resources (Res)
 implementation("io.github.lugf027:apng-resources:<version>")
 ```
 
@@ -106,7 +106,7 @@ val progress by animateApngCompositionAsState(
 | **apng-core** | `io.github.lugf027:apng-core` | APNG parsing, frame composing, and Compose animation rendering |
 | **apng-network-core** | `io.github.lugf027:apng-network-core` | Disk LRU cache and network caching strategy |
 | **apng-network** | `io.github.lugf027:apng-network` | Ktor-based network loading with built-in disk caching |
-| **apng-resources** | `io.github.lugf027:apng-resources` | Compose Multiplatform Resources integration |
+| **apng-resources** | `io.github.lugf027:apng-resources` | KMP Resources integration |
 
 ### Module Dependencies
 
