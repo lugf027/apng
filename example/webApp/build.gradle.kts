@@ -5,28 +5,32 @@ plugins {
 }
 
 kotlin {
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
+    applyDefaultHierarchyTemplate {
+        common {
+            group("web") {
+                withJs()
+                withWasmJs()
+            }
+        }
+    }
+
     js(IR) {
         browser()
         binaries.executable()
     }
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
     wasmJs {
         browser()
         binaries.executable()
     }
 
     sourceSets {
-        val webMain by creating {
-            dependsOn(commonMain.get())
+        val webMain by getting {
             dependencies {
                 implementation(project(":example:shared"))
                 implementation(compose.foundation)
             }
-        }
-        val jsMain by getting {
-            dependsOn(webMain)
-        }
-        val wasmJsMain by getting {
-            dependsOn(webMain)
         }
     }
 }
