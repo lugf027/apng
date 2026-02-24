@@ -9,7 +9,6 @@ kotlin {
     sourceSets {
         jvmMain.dependencies {
             implementation(project(":example:shared"))
-            implementation(project(":apng-core"))
             implementation(compose.desktop.currentOs)
             implementation(libs.coroutines.swing)
         }

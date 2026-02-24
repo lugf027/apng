@@ -62,9 +62,9 @@ kotlin {
 
     sourceSets {
         commonMain.dependencies {
-            implementation(project(":apng-core"))
-            implementation(project(":apng-network"))
-            implementation(project(":apng-resources"))
+            implementation(libs.apng.core)
+            implementation(libs.apng.network)
+            implementation(libs.apng.resources)
             implementation(compose.foundation)
             implementation(compose.material3)
             implementation(compose.components.resources)

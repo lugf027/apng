@@ -1,6 +1,7 @@
 [versions]
 androidx-activity-compose = "1.10.1"
 androidx-core-ktx = "1.17.0"
+apng-core = "0.0.5-beta.2"
 collection = "1.5.0"
 kotlin = "2.3.0"
 compose = "1.10.1"
@@ -15,6 +16,9 @@ maven-publish = "0.34.0"
 kotlinx-browser = "0.5.0"
 
 [libraries]
+apng-core = { module = "io.github.lugf027:apng-core", version.ref = "apng-core" }
+apng-network = { module = "io.github.lugf027:apng-network", version.ref = "apng-core" }
+apng-resources = { module = "io.github.lugf027:apng-resources", version.ref = "apng-core" }
 compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "compose" }
 compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "compose" }
 compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "material3" }

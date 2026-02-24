@@ -42,7 +42,6 @@ kotlin {
 
 dependencies {
     implementation(project(":example:shared"))
-    implementation(project(":apng-core"))
     implementation(libs.androidx.activity.compose)
     implementation(libs.compose.foundation)
 }
