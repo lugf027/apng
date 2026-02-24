@@ -67,9 +67,19 @@ private sealed class Screen {
 // ── App Entry ──
 
 @Composable
-fun App() {
+fun App(onBackFromRoot: (() -> Unit)? = null) {
     MaterialTheme(colorScheme = darkColorScheme()) {
         var screen by remember { mutableStateOf<Screen>(Screen.Gallery) }
+
+        // Handle system back gesture: navigate back within app, or delegate to platform at root
+        SystemBackHandler(enabled = screen !is Screen.Gallery) {
+            screen = Screen.Gallery
+        }
+        if (onBackFromRoot != null) {
+            SystemBackHandler(enabled = screen is Screen.Gallery) {
+                onBackFromRoot()
+            }
+        }
 
         Surface(
             modifier = Modifier.fillMaxSize(),
@@ -111,6 +121,16 @@ fun App() {
         }
     }
 }
+
+/**
+ * Platform-specific back handler. On Android, intercepts the system back gesture/button.
+ * On other platforms, this is a no-op.
+ *
+ * @param enabled Whether the back handler should be active.
+ * @param onBack Callback invoked when the system back event is triggered.
+ */
+@Composable
+expect fun SystemBackHandler(enabled: Boolean = true, onBack: () -> Unit)
 
 // ── Responsive helpers ──
 

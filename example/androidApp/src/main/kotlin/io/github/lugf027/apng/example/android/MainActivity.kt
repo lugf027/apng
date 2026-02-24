@@ -11,7 +11,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContent {
-            App()
+            App(onBackFromRoot = { moveTaskToBack(false) })
         }
     }
 }
