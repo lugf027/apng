@@ -24,7 +24,7 @@ mavenPublishing {
     coordinates(
         groupId = "io.github.lugf027",
         artifactId = "apng-core",
-        version = rootProject.property("VERSION").toString(),
+        version = rootProject.version.toString(),
     )
 
     pom {

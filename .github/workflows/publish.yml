@@ -15,6 +15,20 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
+      - name: Extract version from tag
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            TAG="${{ github.event.release.tag_name }}"
+            # Strip leading 'v' prefix if present (e.g. v1.0.0 -> 1.0.0)
+            VERSION="${TAG#v}"
+            echo "Resolved version from release tag: $VERSION"
+          else
+            VERSION=""
+            echo "No release tag available, Gradle will fall back to gradle.properties"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
@@ -31,3 +45,4 @@ jobs:
           ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.SIGNING_KEY_ID }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_KEY_CONTENTS }}
+          VERSION_TAG: ${{ steps.version.outputs.version }}

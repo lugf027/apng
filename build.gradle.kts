@@ -29,9 +29,13 @@ rootProject.projectDir.resolve("local.properties").let {
 
 val _jvmTarget = findProperty("jvmTarget").toString()
 
+// Resolve version: prioritize VERSION_TAG env var (set by CI from git tag), fall back to gradle.properties
+val resolvedVersion: String = System.getenv("VERSION_TAG").takeUnless { it.isNullOrBlank() }
+    ?: findProperty("VERSION") as String
+
 subprojects {
     group = findProperty("group") as String
-    version = findProperty("VERSION") as String
+    version = resolvedVersion
 
     if (!name.startsWith("apng")) {
         return@subprojects
