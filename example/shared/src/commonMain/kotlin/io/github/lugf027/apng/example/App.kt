@@ -75,31 +75,37 @@ fun App() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background,
         ) {
-            AnimatedContent(
-                targetState = screen,
-                transitionSpec = {
-                    if (targetState is Screen.Gallery) {
-                        (fadeIn() + slideInHorizontally { -it / 4 })
-                            .togetherWith(fadeOut() + slideOutHorizontally { it / 4 })
-                    } else {
-                        (fadeIn() + slideInHorizontally { it / 4 })
-                            .togetherWith(fadeOut() + slideOutHorizontally { -it / 4 })
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .windowInsetsPadding(WindowInsets.safeDrawing),
+            ) {
+                AnimatedContent(
+                    targetState = screen,
+                    transitionSpec = {
+                        if (targetState is Screen.Gallery) {
+                            (fadeIn() + slideInHorizontally { -it / 4 })
+                                .togetherWith(fadeOut() + slideOutHorizontally { it / 4 })
+                        } else {
+                            (fadeIn() + slideInHorizontally { it / 4 })
+                                .togetherWith(fadeOut() + slideOutHorizontally { -it / 4 })
+                        }
+                    },
+                    contentKey = { it::class },
+                ) { currentScreen ->
+                    when (currentScreen) {
+                        is Screen.Gallery -> GalleryScreen(
+                            onAssetClick = { screen = Screen.Detail(it) },
+                            onNetworkClick = { screen = Screen.Network },
+                        )
+                        is Screen.Detail -> DetailScreen(
+                            asset = currentScreen.asset,
+                            onBack = { screen = Screen.Gallery },
+                        )
+                        is Screen.Network -> NetworkDetailScreen(
+                            onBack = { screen = Screen.Gallery },
+                        )
                     }
-                },
-                contentKey = { it::class },
-            ) { currentScreen ->
-                when (currentScreen) {
-                    is Screen.Gallery -> GalleryScreen(
-                        onAssetClick = { screen = Screen.Detail(it) },
-                        onNetworkClick = { screen = Screen.Network },
-                    )
-                    is Screen.Detail -> DetailScreen(
-                        asset = currentScreen.asset,
-                        onBack = { screen = Screen.Gallery },
-                    )
-                    is Screen.Network -> NetworkDetailScreen(
-                        onBack = { screen = Screen.Gallery },
-                    )
                 }
             }
         }
