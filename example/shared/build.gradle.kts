@@ -64,6 +64,10 @@ kotlin {
         dependsOn(sourceSets.getByName("javaMain"))
     }
 
+    androidLibrary {
+        androidResources.enable = true
+    }
+
     sourceSets {
         commonMain.dependencies {
             implementation(libs.apng.core)
@@ -113,6 +117,3 @@ kotlin {
     }
 }
 
-// Workaround: Compose Resources + KMP Android library — see root build.gradle.kts for details.
-@Suppress("UNCHECKED_CAST")
-(rootProject.extra["fixComposeResourcesForKmpAndroid"] as Action<Project>).execute(project)

@@ -46,6 +46,3 @@ dependencies {
     implementation(libs.compose.foundation)
 }
 
-// Workaround: Compose Resources + KMP Android library — see root build.gradle.kts for details.
-@Suppress("UNCHECKED_CAST")
-(rootProject.extra["consumeKmpLibraryComposeAssets"] as (Project, String) -> Unit)(project, ":example:shared")
