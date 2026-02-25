@@ -1,12 +1,9 @@
 [versions]
 androidx-activity-compose = "1.10.1"
-androidx-core-ktx = "1.17.0"
 apng-core = "0.0.5-beta.2"
 collection = "1.5.0"
 kotlin = "2.3.0"
 compose = "1.10.1"
-androidx-lifecycle = "2.10.0-alpha07"
-material3 = "1.10.0-alpha05"
 agp = "8.13.2"
 okio = "3.15.0"
 ktor = "3.2.3"
@@ -21,11 +18,8 @@ apng-network = { module = "io.github.lugf027:apng-network", version.ref = "apng-
 apng-resources = { module = "io.github.lugf027:apng-resources", version.ref = "apng-core" }
 compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "compose" }
 compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "compose" }
-compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "material3" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity-compose" }
 androidx-collection = { module = "androidx.collection:collection", version.ref = "collection" }
-androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core-ktx" }
-androidx-lifecycle-viewmodel = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-js = { module = "io.ktor:ktor-client-js", version.ref = "ktor" }
