@@ -153,7 +153,7 @@ apng-resources             ← apng-core + compose.components.resources
 # Web (WasmJS)
 ./gradlew :example:webApp:wasmJsBrowserDevelopmentRun
 
-# iOS — open in Xcode
+# iOS — open in Xcode, then run (Cmd + R)
 open example/iosApp/iosApp.xcodeproj
 ```
 
