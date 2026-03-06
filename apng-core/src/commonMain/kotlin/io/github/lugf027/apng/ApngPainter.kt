@@ -20,7 +20,11 @@ public fun rememberApngPainter(
     val currentProgress by rememberUpdatedState(progress)
     return remember(composition, clipToCompositionBounds) {
         if (composition != null) {
-            ApngPainterImpl(composition, { currentProgress() }, clipToCompositionBounds)
+            ApngPainterImpl(
+                composition = composition,
+                progress = { currentProgress() },
+                clipToCompositionBounds = clipToCompositionBounds,
+            )
         } else {
             EmptyPainter
         }
@@ -72,6 +76,7 @@ private class ApngPainterImpl(
 
         val frameIndex = composition.frameIndexAt(progress())
         val frame = composition.frames[frameIndex]
+        val dstSize = IntSize(size.width.toInt(), size.height.toInt())
 
         if (clipToCompositionBounds) {
             clipRect(
@@ -82,13 +87,13 @@ private class ApngPainterImpl(
             ) {
                 drawImage(
                     image = frame,
-                    dstSize = IntSize(size.width.toInt(), size.height.toInt()),
+                    dstSize = dstSize,
                 )
             }
         } else {
             drawImage(
                 image = frame,
-                dstSize = IntSize(size.width.toInt(), size.height.toInt()),
+                dstSize = dstSize,
             )
         }
     }

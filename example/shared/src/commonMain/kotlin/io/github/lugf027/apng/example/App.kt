@@ -8,6 +8,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -540,6 +541,7 @@ private fun AnimationPreview(
         modifier = Modifier
             .size(previewSize)
             .clip(RoundedCornerShape(16.dp))
+            .border(width = 1.dp, color = Color(0xFFFF0000))
             .background(Color(0xFF0D0D1A)),
         contentAlignment = Alignment.Center,
     ) {
@@ -551,19 +553,16 @@ private fun AnimationPreview(
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
             else -> {
-                val painter = rememberApngPainter(
+                ApngImage(
                     composition = composition,
-                    isPlaying = isPlaying,
-                    iterations = iterations,
-                    speed = speed,
-                )
-                Image(
-                    painter = painter,
                     contentDescription = "APNG",
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(16.dp)
                         .graphicsLayer(scaleX = scale, scaleY = scale),
+                    isPlaying = isPlaying,
+                    iterations = iterations,
+                    speed = speed,
                     contentScale = ContentScale.Fit,
                 )
             }
